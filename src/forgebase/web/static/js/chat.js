@@ -20,6 +20,7 @@ class ChatInterface {
     addMessage(content, isUser = false) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${isUser ? 'user' : 'agent'}`;
+        // Use textContent to safely set text, CSS white-space: pre-wrap will handle newlines
         messageDiv.textContent = content;
         this.messagesDiv.appendChild(messageDiv);
         this.scrollToBottom();
@@ -64,6 +65,7 @@ class ChatInterface {
 
                 const chunk = new TextDecoder().decode(value);
                 agentText += chunk;
+                // Use textContent for safety, CSS white-space: pre-wrap will preserve newlines
                 agentMessage.textContent = agentText;
                 this.scrollToBottom();
             }

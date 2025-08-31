@@ -7,7 +7,7 @@ from forgebase.infrastructure import stub_agent
 
 @pytest.mark.asyncio
 async def test_stub_agent_streams_chunks():
-    """Verify the stub agent produces a known stream of chunks."""
+    """Test that StubAgent streams the expected chunks."""
     agent = stub_agent.StubAgent()
     chunks = [chunk async for chunk in agent.send_message_stream("test")]
     assert chunks == ["This ", "is ", "a ", "stub ", "reply."]

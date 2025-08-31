@@ -1,12 +1,12 @@
-"""FastAPI web interface for forgebase chat."""
+"""Web interface for the forgebase chat application."""
 
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from starlette.requests import Request
 
 from forgebase.core import chat_service
 from forgebase.infrastructure import config, logging_config
@@ -56,10 +56,12 @@ def create_app() -> FastAPI:
         """Stream chat response."""
         user_message = request.get("message", "")
 
-        async def generate() -> AsyncGenerator[bytes, None]:
+        async def generate():
             if _service:
                 async for chunk in _service.send_message_stream(user_message):
                     yield chunk.encode("utf-8")
+                # Add a newline at the end like CLI does
+                yield "\n".encode("utf-8")
 
         return StreamingResponse(generate(), media_type="text/plain")
 
