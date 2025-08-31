@@ -7,7 +7,6 @@ from semantic_kernel.agents.chat_completion.chat_completion_agent import (
     ChatHistoryAgentThread,
 )
 from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion
-from semantic_kernel.contents import StreamingChatMessageContent
 
 
 class SKAgent:
@@ -37,7 +36,7 @@ class SKAgent:
 
     async def send_message_stream(
         self, user_text: str
-    ) -> AsyncIterator[StreamingChatMessageContent]:
+    ) -> AsyncIterator[str]:
         """
         Send a user message and stream the assistant's reply.
 
@@ -54,7 +53,7 @@ class SKAgent:
             messages=user_text, thread=self.thread
         ):
             if response.content:
-                yield response.content
+                yield response.content.content
 
     async def reset(self) -> None:
         """Reset the conversation state."""
