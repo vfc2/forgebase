@@ -1,0 +1,72 @@
+"""FastAPI web interface for forgebase chat."""
+
+from typing import AsyncGenerator
+
+from fastapi import FastAPI, Request
+from fastapi.responses import StreamingResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+
+from forgebase.core import chat_service
+from forgebase.infrastructure import config, logging_config
+
+
+def create_app() -> FastAPI:
+    """Create and configure the FastAPI application."""
+    fastapi_app = FastAPI(
+        title="Forgebase Chat",
+        description="Ultra-minimal chat interface over Semantic Kernel",
+        version="1.0.0",
+    )
+
+    # Setup templates and static files
+    templates = Jinja2Templates(directory="src/forgebase/web/templates")
+    fastapi_app.mount(
+        "/static", StaticFiles(directory="src/forgebase/web/static"), name="static"
+    )
+
+    # Global service instance
+    _service: chat_service.ChatService | None = None
+
+    @fastapi_app.on_event("startup")
+    async def startup():
+        """Initialize the chat service."""
+        nonlocal _service
+        logging_config.setup_logging(debug=False)
+        agent = config.get_agent()
+        _service = chat_service.ChatService(agent)
+
+    @fastapi_app.get("/")
+    async def index(request: Request):
+        """Serve the chat interface."""
+        return templates.TemplateResponse("chat.html", {"request": request})
+
+    @fastapi_app.post("/api/chat/stream")
+    async def chat_stream(request: dict):
+        """Stream chat response."""
+        user_message = request.get("message", "")
+
+        async def generate() -> AsyncGenerator[bytes, None]:
+            if _service:
+                async for chunk in _service.send_message_stream(user_message):
+                    yield chunk.encode("utf-8")
+
+        return StreamingResponse(generate(), media_type="text/plain")
+
+    @fastapi_app.post("/api/chat/reset")
+    async def reset_chat():
+        """Reset the chat conversation."""
+        if _service:
+            await _service.reset()
+        return {"status": "reset"}
+
+    @fastapi_app.get("/health")
+    async def health_check():
+        """Health check endpoint."""
+        return {"status": "healthy", "service": "forgebase-web"}
+
+    return fastapi_app
+
+
+# Create the app instance
+app = create_app()

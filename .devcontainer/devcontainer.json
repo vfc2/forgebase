@@ -15,5 +15,14 @@
             ]
         }
     },
+    "forwardPorts": [
+        8000
+    ],
+    "portsAttributes": {
+        "8000": {
+            "label": "Forgebase Web Interface",
+            "onAutoForward": "notify"
+        }
+    },
     "postCreateCommand": "python -m venv .venv && . .venv/bin/activate && python -m pip install --upgrade pip && python -m pip install -r requirements.txt -r requirements-dev.txt"
 }
