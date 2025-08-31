@@ -15,3 +15,8 @@ ignore_errors = true
 pythonpath = [
   "src"
 ]
+filterwarnings = [
+  "ignore::RuntimeWarning:unittest.mock",
+  "ignore:coroutine.*was never awaited:RuntimeWarning",
+  "ignore::DeprecationWarning:pydantic.*",
+]

@@ -51,7 +51,9 @@ class TestWebInterface(unittest.TestCase):
     @patch("forgebase.interfaces.web.logging_config.setup_logging")
     @patch("forgebase.interfaces.web.Jinja2Templates")
     @patch("forgebase.interfaces.web.StaticFiles")
-    def test_health_endpoint(self, _mock_static, _mock_templates, _mock_logging, mock_get_agent):
+    def test_health_endpoint(
+        self, _mock_static, _mock_templates, _mock_logging, mock_get_agent
+    ):
         """Test the health endpoint."""
         mock_agent = AsyncMock()
         mock_get_agent.return_value = mock_agent
@@ -62,14 +64,15 @@ class TestWebInterface(unittest.TestCase):
             response = client.get("/health")
 
             assert response.status_code == 200
-            assert response.json() == {
-                "status": "healthy", "service": "forgebase-web"}
+            assert response.json() == {"status": "healthy", "service": "forgebase-web"}
 
     @patch("forgebase.interfaces.web.config.get_agent")
     @patch("forgebase.interfaces.web.logging_config.setup_logging")
     @patch("forgebase.interfaces.web.Jinja2Templates")
     @patch("forgebase.interfaces.web.StaticFiles")
-    def test_index_endpoint(self, _mock_static, mock_templates, _mock_logging, mock_get_agent):
+    def test_index_endpoint(
+        self, _mock_static, mock_templates, _mock_logging, mock_get_agent
+    ):
         """Test the index endpoint renders the chat template."""
         mock_agent = AsyncMock()
         mock_get_agent.return_value = mock_agent
@@ -155,8 +158,7 @@ class TestWebInterface(unittest.TestCase):
 
         with TestClient(app) as client:
             # Test streaming endpoint
-            response = client.post(
-                "/api/chat/stream", json={"message": "Hello"})
+            response = client.post("/api/chat/stream", json={"message": "Hello"})
 
             assert response.status_code == 200
             assert response.headers["content-type"] == "text/plain; charset=utf-8"
@@ -221,8 +223,7 @@ class TestWebInterface(unittest.TestCase):
         # Create test client without triggering proper startup
         with TestClient(app, raise_server_exceptions=False) as client:
             # Skip startup by directly testing the endpoint
-            response = client.post(
-                "/api/chat/stream", json={"message": "Hello"})
+            response = client.post("/api/chat/stream", json={"message": "Hello"})
 
             # Should still return 200 but with empty content since service is None
             assert response.status_code == 200
@@ -232,26 +233,28 @@ class TestWebInterface(unittest.TestCase):
     @patch("forgebase.interfaces.web.logging_config.setup_logging")
     @patch("forgebase.interfaces.web.Jinja2Templates")
     @patch("forgebase.interfaces.web.StaticFiles")
-    def test_startup_event_initializes_service(
+    def test_lifespan_initializes_service(
         self, _mock_static, _mock_templates, mock_logging, mock_get_agent
     ):
-        """Test that the startup event properly initializes the chat service."""
+        """Test that the lifespan context properly initializes the chat service."""
         # Setup mocks
         mock_agent = MagicMock()
         mock_get_agent.return_value = mock_agent
 
         app = create_app()
 
-        # Create client which triggers startup event
+        # Create client which triggers lifespan startup
         with TestClient(app):
-            # Verify mocks were called during startup
+            # Verify mocks were called during lifespan startup
             mock_logging.assert_called_once_with(debug=False)
             mock_get_agent.assert_called_once()
 
     def test_app_module_level_instance(self):
         """Test that the module-level app instance is created correctly."""
         # Import here to avoid circular imports in tests
-        from forgebase.interfaces.web import app  # pylint: disable=import-outside-toplevel
+        from forgebase.interfaces.web import (
+            app,
+        )  # pylint: disable=import-outside-toplevel
 
         # Should be a FastAPI instance
         assert isinstance(app, FastAPI)
@@ -269,7 +272,9 @@ class TestWebInterfaceIntegration(unittest.TestCase):
     ):
         """Test integration with the stub agent for realistic behavior."""
         # Use a real stub agent
-        from forgebase.infrastructure.stub_agent import StubAgent  # pylint: disable=import-outside-toplevel
+        from forgebase.infrastructure.stub_agent import (
+            StubAgent,
+        )  # pylint: disable=import-outside-toplevel
 
         mock_agent = StubAgent()
         mock_get_agent.return_value = mock_agent
@@ -294,7 +299,9 @@ class TestWebInterfaceIntegration(unittest.TestCase):
     ):
         """Test integration of chat streaming with stub agent."""
         # Use a real stub agent
-        from forgebase.infrastructure.stub_agent import StubAgent  # pylint: disable=import-outside-toplevel
+        from forgebase.infrastructure.stub_agent import (
+            StubAgent,
+        )  # pylint: disable=import-outside-toplevel
 
         mock_agent = StubAgent()
         mock_get_agent.return_value = mock_agent
@@ -303,8 +310,7 @@ class TestWebInterfaceIntegration(unittest.TestCase):
 
         with TestClient(app) as client:
             # Test streaming endpoint - should work with stub agent
-            response = client.post(
-                "/api/chat/stream", json={"message": "test"})
+            response = client.post("/api/chat/stream", json={"message": "test"})
             assert response.status_code == 200
 
             # Stub agent should return some response content

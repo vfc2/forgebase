@@ -1,5 +1,6 @@
 """FastAPI web interface for forgebase chat."""
 
+from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
 from fastapi import FastAPI, Request
@@ -11,12 +12,32 @@ from forgebase.core import chat_service
 from forgebase.infrastructure import config, logging_config
 
 
+# Global service instance that will be shared across requests
+_service: chat_service.ChatService | None = None
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    """Manage application lifespan - startup and shutdown logic."""
+    # Startup: Initialize the chat service
+    global _service  # pylint: disable=global-statement
+    logging_config.setup_logging(debug=False)
+    agent = config.get_agent()
+    _service = chat_service.ChatService(agent)
+
+    yield  # Application runs here
+
+    # Shutdown: Clean up resources if needed
+    _service = None
+
+
 def create_app() -> FastAPI:
     """Create and configure the FastAPI application."""
     fastapi_app = FastAPI(
         title="Forgebase Chat",
         description="Ultra-minimal chat interface over Semantic Kernel",
         version="1.0.0",
+        lifespan=lifespan,
     )
 
     # Setup templates and static files
@@ -24,17 +45,6 @@ def create_app() -> FastAPI:
     fastapi_app.mount(
         "/static", StaticFiles(directory="src/forgebase/web/static"), name="static"
     )
-
-    # Global service instance
-    _service: chat_service.ChatService | None = None
-
-    @fastapi_app.on_event("startup")
-    async def startup():
-        """Initialize the chat service."""
-        nonlocal _service
-        logging_config.setup_logging(debug=False)
-        agent = config.get_agent()
-        _service = chat_service.ChatService(agent)
 
     @fastapi_app.get("/")
     async def index(request: Request):
