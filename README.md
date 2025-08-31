@@ -36,7 +36,7 @@ This project uses `black`, `pylint`, and `mypy` for code quality.
 *   **Run tests:** `pytest`
 
 ```bash
-python -m black src tests && python -m pylint src && python -m mypy src && python -m pytest tests
+python -m black src tests && python -m pylint src tests && python -m mypy src && python -m pytest tests
 ```
 
 ## Future Web Integration

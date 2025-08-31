@@ -34,9 +34,7 @@ class SKAgent:
         )
         self.thread: ChatHistoryAgentThread | None = None
 
-    async def send_message_stream(
-        self, user_text: str
-    ) -> AsyncIterator[str]:
+    async def send_message_stream(self, user_text: str) -> AsyncIterator[str]:
         """
         Send a user message and stream the assistant's reply.
 
@@ -52,8 +50,13 @@ class SKAgent:
         async for response in self.agent.invoke_stream(
             messages=user_text, thread=self.thread
         ):
-            if response.content:
-                yield response.content.content
+            # Safely check if response has content and content is not empty
+            try:
+                if response.content and response.content.content:
+                    yield response.content.content
+            except AttributeError:
+                # Skip responses that don't have content attribute
+                continue
 
     async def reset(self) -> None:
         """Reset the conversation state."""

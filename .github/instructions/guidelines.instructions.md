@@ -24,10 +24,10 @@ This project is an ultra-minimal, async, transport-agnostic chat boundary that s
 * Format with **Black**; **Pylint** and **mypy** must be clean (0 warnings).
 * No dynamic imports; no I/O in `core/`; never log secrets.
 
-The following must run without any error before any change can be Committed:
+**The following must run without any error after any change:**
 
 ```bash
-python -m black src tests && python -m pylint src && python -m mypy src && python -m pytest tests
+python -m black src tests && python -m pylint src tests && python -m mypy src && python -m pytest tests
 ```
 
 ## UI guidelines
