@@ -10,6 +10,7 @@ Forgebase is a simple MVP that lets a user chat with an agent to produce a Produ
 ## Folder Structure
 
 * `/src/forgebase`: Contains the source code (core, infrastructure, interfaces, prompts).
+* `/src/forgebase/web`: The web app front-end. 
 * `/tests`: Contains unit tests (pytest) covering streaming, CLI behavior, and service orchestration.
 * `/.github/instructions`: Contains project instructions and maintenance guidelines.
 
@@ -18,9 +19,11 @@ Forgebase is a simple MVP that lets a user chat with an agent to produce a Produ
 * `semantic-kernel` for LLM chat via `ChatCompletionAgent` (streaming).
 * Python stdlib `asyncio` and `logging` for streaming and diagnostics.
 * Tooling: `pytest` for tests, `black` for formatting, `pylint` for linting, `mypy` for type checking.
+* You must ask before adding any external libraries or dependencies.
 
 ## Coding Standards
 
+* Always favour simplicity and minimise side-effects at all cost.
 * Google-style docstrings for every module, class, and function.
 * Full type hints; async-first design (`AsyncIterator[str]` for streaming).
 * Format with **Black**; **Pylint** and **mypy** must be clean (0 warnings).
