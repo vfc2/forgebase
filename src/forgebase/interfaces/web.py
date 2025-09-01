@@ -1,5 +1,6 @@
 """Web interface for the forgebase chat application."""
 
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -29,6 +30,32 @@ async def lifespan(_: FastAPI):
     _service = None
 
 
+def get_cors_origins() -> list[str]:
+    """Get CORS origins from environment variable or use defaults."""
+    cors_origins_env = os.getenv("CORS_ORIGINS")
+    if cors_origins_env:
+        return [origin.strip() for origin in cors_origins_env.split(",")]
+
+    # If no environment variable is set, construct defaults from other env vars
+    frontend_host = os.getenv("FRONTEND_HOST", "localhost")
+    frontend_port = os.getenv("FRONTEND_PORT", "5173")
+    frontend_fallback_port = os.getenv("FRONTEND_FALLBACK_PORT", "5174")
+
+    # Build default origins dynamically
+    origins = []
+    localhost_aliases = [frontend_host]
+
+    # Add 127.0.0.1 alias if frontend_host is localhost
+    if frontend_host == "localhost":
+        localhost_aliases.append("127.0.0.1")
+
+    for hostname in localhost_aliases:
+        for port_num in [frontend_port, frontend_fallback_port]:
+            origins.append(f"http://{hostname}:{port_num}")
+
+    return origins
+
+
 def create_app() -> FastAPI:
     """Create and configure the FastAPI application."""
     fastapi_app = FastAPI(
@@ -41,8 +68,7 @@ def create_app() -> FastAPI:
     # Add CORS middleware to allow frontend communication
     fastapi_app.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:5173",
-                       "http://127.0.0.1:5173"],  # React dev server
+        allow_origins=get_cors_origins(),
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -56,10 +82,12 @@ def create_app() -> FastAPI:
         async def generate():
             if _service:
                 async for chunk in _service.send_message_stream(user_message):
-                    # Format as Server-Sent Events
-                    yield f"data: {chunk}\n".encode("utf-8")
+                    # Escape newlines for SSE format - replace \n with \\n
+                    # so they're preserved as literal newline characters in the data
+                    escaped_chunk = chunk.replace('\n', '\\n')
+                    yield f"data: {escaped_chunk}\n\n".encode("utf-8")
                 # Send completion marker
-                yield "data: [DONE]\n".encode("utf-8")
+                yield "data: [DONE]\n\n".encode("utf-8")
 
         return StreamingResponse(generate(), media_type="text/plain")
 
@@ -84,5 +112,7 @@ app = create_app()
 
 if __name__ == "__main__":
     import uvicorn
+    host = os.getenv("FORGEBASE_HOST", "0.0.0.0")
+    port = int(os.getenv("FORGEBASE_PORT", "8000"))
     uvicorn.run("forgebase.interfaces.web:app",
-                host="0.0.0.0", port=8000, reload=True)
+                host=host, port=port, reload=True)

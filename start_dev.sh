@@ -106,16 +106,27 @@ cd /workspaces/forgebase
 PYTHONPATH=src python src/forgebase/interfaces/web.py &
 BACKEND_PID=$!
 
-# Wait a moment for backend to start
-sleep 3
-
-# Check if backend is running
-if ! curl -s http://localhost:8000/health > /dev/null; then
-    echo "❌ Backend failed to start. Check the logs above."
-    exit 1
-fi
-
-echo "✅ Backend started successfully!"
+# Wait for backend to start with better retry logic
+echo "⏳ Waiting for backend to be ready..."
+for i in {1..30}; do
+    if curl -s -f http://localhost:8000/health > /dev/null 2>&1; then
+        echo "✅ Backend started successfully!"
+        break
+    fi
+    if [ $i -eq 30 ]; then
+        echo "❌ Backend failed to start after 30 seconds. Check the logs above."
+        echo "📋 Backend logs:"
+        # Show last few lines of backend process if still running
+        if kill -0 $BACKEND_PID 2>/dev/null; then
+            echo "Backend process is still running (PID: $BACKEND_PID)"
+        else
+            echo "Backend process has exited"
+        fi
+        exit 1
+    fi
+    echo "   Attempt $i/30: Backend not ready yet, waiting 1 second..."
+    sleep 1
+done
 
 # Start frontend server
 echo "⚛️  Starting React frontend server on http://localhost:5173..."

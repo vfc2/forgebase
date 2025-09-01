@@ -7,8 +7,8 @@ class ApiService {
     private baseURL: string;
 
     constructor() {
-        // Use environment variable or default to localhost
-        this.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+        // Use environment variable with a sensible default for development
+        this.baseURL = import.meta.env.VITE_API_URL || `http://localhost:${import.meta.env.VITE_API_PORT || '8000'}`;
 
         this.client = axios.create({
             baseURL: this.baseURL,
@@ -110,18 +110,17 @@ class ApiService {
 
                     buffer += decoder.decode(value, { stream: true });
 
-                    // Split by newlines and process each complete line
+                    // Process SSE format: look for complete "data: " lines
                     const lines = buffer.split('\n');
                     buffer = lines.pop() || ''; // Keep the last incomplete line in buffer
 
                     for (const line of lines) {
-                        const trimmed = line.trim();
-                        if (trimmed && trimmed !== 'data: [DONE]') {
-                            if (trimmed.startsWith('data: ')) {
-                                const data = trimmed.slice(6); // Remove 'data: ' prefix
-                                if (data) {
-                                    yield data;
-                                }
+                        if (line.startsWith('data: ')) {
+                            const data = line.slice(6); // Remove 'data: ' prefix
+                            if (data && data !== '[DONE]') {
+                                // Unescape newlines that were escaped for SSE transport
+                                const unescapedData = data.replace(/\\n/g, '\n');
+                                yield unescapedData;
                             }
                         }
                     }
@@ -133,7 +132,9 @@ class ApiService {
                     if (trimmed.startsWith('data: ') && trimmed !== 'data: [DONE]') {
                         const data = trimmed.slice(6);
                         if (data) {
-                            yield data;
+                            // Unescape newlines that were escaped for SSE transport
+                            const unescapedData = data.replace(/\\n/g, '\n');
+                            yield unescapedData;
                         }
                     }
                 }

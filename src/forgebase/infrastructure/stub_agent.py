@@ -20,10 +20,25 @@ class StubAgent:
             AsyncIterator[str]: Chunks of a fixed reply.
         """
         del user_text  # Unused
-        reply = ["This ", "is ", "a ", "stub ", "reply."]
+
+        # Test response with newlines
+        reply = [
+            "Here is a test response with formatting:\n\n",
+            "**First Line**\n",
+            "This is the first line of content.\n\n",
+            "**Second Line**\n",
+            "This is the second line.\n",
+            "And this continues on the same line.\n\n",
+            "**Final Section**\n",
+            "- Bullet point one\n",
+            "- Bullet point two\n",
+            "- Bullet point three\n\n",
+            "End of response."
+        ]
+
         for chunk in reply:
             yield chunk
-            await asyncio.sleep(0.01)  # Simulate network latency
+            await asyncio.sleep(0.1)  # Simulate network latency
 
     async def reset(self) -> None:
         """Does nothing, as the stub agent is stateless."""

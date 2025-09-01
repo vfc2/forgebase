@@ -16,10 +16,22 @@ export const ChatInterface: React.FC = () => {
     } = useChat();
 
     return (
-        <div className="h-full flex flex-col">
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             {/* Chat header with reset button */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-white">
-                <h2 className="text-lg font-medium text-gray-900">
+            <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '0.75rem 1rem',
+                borderBottom: '1px solid #e5e7eb',
+                backgroundColor: 'white'
+            }}>
+                <h2 style={{
+                    fontSize: '1.125rem',
+                    fontWeight: '500',
+                    color: '#111827',
+                    margin: 0
+                }}>
                     Conversation
                 </h2>
                 <Button
@@ -34,15 +46,21 @@ export const ChatInterface: React.FC = () => {
 
             {/* Error display */}
             {error && (
-                <div className="mx-4 mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
-                    <div className="flex">
-                        <div className="flex-shrink-0">
-                            <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                <div style={{
+                    margin: '1rem',
+                    padding: '0.75rem',
+                    backgroundColor: '#fef2f2',
+                    border: '1px solid #fecaca',
+                    borderRadius: '0.375rem'
+                }}>
+                    <div style={{ display: 'flex' }}>
+                        <div style={{ flexShrink: 0 }}>
+                            <svg style={{ height: '1.25rem', width: '1.25rem', color: '#ef4444' }} viewBox="0 0 20 20" fill="currentColor">
                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                             </svg>
                         </div>
-                        <div className="ml-3">
-                            <p className="text-sm text-red-800">
+                        <div style={{ marginLeft: '0.75rem' }}>
+                            <p style={{ fontSize: '0.875rem', color: '#991b1b', margin: 0 }}>
                                 {error instanceof Error ? error.message : 'An error occurred'}
                             </p>
                         </div>

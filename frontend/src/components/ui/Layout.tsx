@@ -6,21 +6,17 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
     return (
-        <div className="h-screen bg-gray-50 flex flex-col">
+        <div className="chat-container">
             {/* Header */}
-            <header className="bg-white border-b border-gray-200 px-6 py-4">
-                <div className="flex items-center justify-between">
-                    <h1 className="text-xl font-semibold text-gray-900">
-                        Forgebase Chat
-                    </h1>
-                    <div className="text-sm text-gray-500">
-                        Conversational PRD Generation
-                    </div>
+            <header className="chat-header">
+                <h1>Forgebase Chat</h1>
+                <div style={{ fontSize: '0.875rem', color: '#64748b', marginTop: '0.25rem' }}>
+                    Conversational PRD Generation
                 </div>
             </header>
 
             {/* Main content */}
-            <main className="flex-1 overflow-hidden">
+            <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                 {children}
             </main>
         </div>

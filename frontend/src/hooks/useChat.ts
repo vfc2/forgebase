@@ -41,6 +41,9 @@ export const useChat = () => {
                 timestamp: new Date(),
             });
 
+            // Wait a brief moment to ensure user message is rendered
+            await new Promise(resolve => setTimeout(resolve, 50));
+
             // Add empty assistant message that will be updated
             addMessage({
                 content: '',
@@ -51,9 +54,11 @@ export const useChat = () => {
             setIsStreaming(true);
             let fullResponse = '';
 
+            // Start the streaming chat
+            const stream = apiService.streamChat({ message });
+
             try {
-                // Stream the response
-                for await (const chunk of apiService.streamChat({ message })) {
+                for await (const chunk of stream) {
                     fullResponse += chunk;
                     updateLastMessage(fullResponse);
                 }

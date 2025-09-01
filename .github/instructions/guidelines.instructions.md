@@ -63,6 +63,7 @@ python -m black src tests && python -m pylint src tests && python -m mypy src &&
 ```
 
 **Run interfaces:**
+- Always use the virtual environment `source .venv/bin/activate `
 - CLI: `python -m forgebase.interfaces.cli chat`  
 - Web API: `./start_web.sh` → http://localhost:8000
 - Frontend: `cd frontend && npm run dev`

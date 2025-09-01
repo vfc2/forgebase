@@ -23,12 +23,17 @@ export const MessageList: React.FC<MessageListProps> = ({
 
     if (messages.length === 0) {
         return (
-            <div className="flex-1 flex items-center justify-center text-gray-500">
-                <div className="text-center">
-                    <div className="text-lg font-medium mb-2">
+            <div className="chat-messages" style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#6b7280'
+            }}>
+                <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.125rem', fontWeight: '500', marginBottom: '0.5rem' }}>
                         Welcome to Forgebase Chat
                     </div>
-                    <div className="text-sm">
+                    <div style={{ fontSize: '0.875rem' }}>
                         Start a conversation to generate PRDs and work plans
                     </div>
                 </div>
@@ -37,8 +42,12 @@ export const MessageList: React.FC<MessageListProps> = ({
     }
 
     return (
-        <div className="flex-1 overflow-y-auto px-4 py-4">
-            <div className="max-w-4xl mx-auto">
+        <div className="chat-messages" style={{
+            flex: 1,
+            overflowY: 'auto',
+            padding: '1rem'
+        }}>
+            <div style={{ maxWidth: '64rem', margin: '0 auto' }}>
                 {messages.map((message, index) => (
                     <MessageBubble
                         key={message.id}
