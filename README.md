@@ -26,15 +26,25 @@ Ultra-minimal, async, transport-agnostic chat boundary over Semantic Kernel that
     python -m forgebase.interfaces.cli chat
     ```
 
-5.  **Or run the Web Interface:**
+5.  **Run the Full Application (Backend + Frontend):**
     ```bash
-    # Quick start
-    ./start_web.sh
+    # Quick start - runs both backend and frontend
+    ./start_dev.sh
     
-    # Or manually
-    PYTHONPATH=src python src/forgebase/web_main.py
+    # Backend will be at http://localhost:8000
+    # Frontend will be at http://localhost:5173
+    ```
+
+6.  **Or run individually:**
+    ```bash
+    # Backend only
+    PYTHONPATH=src python src/forgebase/interfaces/web.py
     
-    # Then open http://localhost:8000
+    # Frontend only (in another terminal)
+    cd frontend && npm run dev
+    
+    # CLI only
+    python -m forgebase.interfaces.cli chat
     ```
 
 ## Development
@@ -63,7 +73,6 @@ Forgebase includes a clean, minimal web interface built with FastAPI:
 ### Development
 
 - Use VS Code: Run "Debug Web Interface" configuration (F5)
-- Or command line: `./start_web.sh`
 - Auto-reload enabled for development
 - Available at http://localhost:8000
 

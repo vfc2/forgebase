@@ -2,7 +2,8 @@
     "name": "python312-forgebase",
     "image": "mcr.microsoft.com/devcontainers/python:3.12",
     "features": {
-        "ghcr.io/devcontainers/features/git:1": {}
+        "ghcr.io/devcontainers/features/git:1": {},
+        "ghcr.io/devcontainers/features/node:1": {}
     },
     "customizations": {
         "vscode": {

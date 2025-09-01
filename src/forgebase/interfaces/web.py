@@ -3,10 +3,8 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from starlette.requests import Request
 
 from forgebase.core import chat_service
 from forgebase.infrastructure import config, logging_config
@@ -40,16 +38,15 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # Setup templates and static files
-    templates = Jinja2Templates(directory="src/forgebase/web/templates")
-    fastapi_app.mount(
-        "/static", StaticFiles(directory="src/forgebase/web/static"), name="static"
+    # Add CORS middleware to allow frontend communication
+    fastapi_app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["http://localhost:5173",
+                       "http://127.0.0.1:5173"],  # React dev server
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
-
-    @fastapi_app.get("/")
-    async def index(request: Request):
-        """Serve the chat interface."""
-        return templates.TemplateResponse("chat.html", {"request": request})
 
     @fastapi_app.post("/api/chat/stream")
     async def chat_stream(request: dict):
@@ -59,9 +56,10 @@ def create_app() -> FastAPI:
         async def generate():
             if _service:
                 async for chunk in _service.send_message_stream(user_message):
-                    yield chunk.encode("utf-8")
-                # Add a newline at the end like CLI does
-                yield "\n".encode("utf-8")
+                    # Format as Server-Sent Events
+                    yield f"data: {chunk}\n".encode("utf-8")
+                # Send completion marker
+                yield "data: [DONE]\n".encode("utf-8")
 
         return StreamingResponse(generate(), media_type="text/plain")
 
@@ -82,3 +80,9 @@ def create_app() -> FastAPI:
 
 # Create the app instance
 app = create_app()
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("forgebase.interfaces.web:app",
+                host="0.0.0.0", port=8000, reload=True)
