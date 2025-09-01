@@ -3,7 +3,9 @@ applyTo: "**"
 ---
 # Project Overview
 
-This project is an ultra-minimal, async, transport-agnostic chat boundary that streams LLM replies using **Semantic Kernel**’s `ChatCompletionAgent.invoke_stream(...)`. It ships with a CLI for development/testing and a clean seam for a future web app. Built with **Python 3.12** and **no business logic**.
+Forgebase is a simple MVP that lets a user chat with an agent to produce a Product Requirements Document (PRD) and scope the required work. It’s designed to be interface agnostic and can be used from a GUI, a web-app or any frontend.
+
+**Goal:** Guide a conversational workflow that turns raw dialogue into a structured PRD and a scoped plan of work (e.g., sections, assumptions, constraints, and—later—high-level epics/stories).
 
 ## Folder Structure
 
