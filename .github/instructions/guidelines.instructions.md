@@ -3,39 +3,53 @@ applyTo: "**"
 ---
 # Project Overview
 
-Forgebase is a simple MVP that lets a user chat with an agent to produce a Product Requirements Document (PRD) and scope the required work. It’s designed to be interface agnostic and can be used from a GUI, a web-app or any frontend.
+Forgebase is a minimal MVP for conversational product requirement document (PRD) generation. It provides a transport-agnostic chat interface over Semantic Kernel with streaming responses, supporting both CLI and web interfaces.
 
-**Goal:** Guide a conversational workflow that turns raw dialogue into a structured PRD and a scoped plan of work (e.g., sections, assumptions, constraints, and—later—high-level epics/stories).
+**Goal:** Enable conversational workflows that turn dialogue into structured PRDs and scoped work plans through a simple, extensible architecture.
 
-## Folder Structure
+## Architecture
 
-* `/src/forgebase`: Contains the source code (core, infrastructure, interfaces, prompts).
-* `/src/forgebase/web`: The web app front-end. 
-* `/tests`: Contains unit tests (pytest) covering streaming, CLI behavior, and service orchestration.
-* `/.github/instructions`: Contains project instructions and maintenance guidelines.
+### Core Components
+* `core/`: Domain logic with no I/O dependencies
+  - [`ChatService`](src/forgebase/core/chat_service.py): Main orchestration service
+  - [`AgentPort`](src/forgebase/core/ports.py): Protocol defining agent interface (`send_message_stream`, `reset`)
 
-## Libraries and Frameworks
+### Infrastructure Layer  
+* [`config.py`](/src/forgebase/infrastructure/config.py): Environment-based agent selection (Azure OpenAI vs stub)
+* [`sk_agent.py`](src/forgebase/infrastructure/sk_agent.py): Semantic Kernel implementation with `ChatCompletionAgent`
+* [`stub_agent.py`](src/forgebase/infrastructure/stub_agent.py): Mock implementation for testing
 
-* `semantic-kernel` for LLM chat via `ChatCompletionAgent` (streaming).
-* Python stdlib `asyncio` and `logging` for streaming and diagnostics.
-* Tooling: `pytest` for tests, `black` for formatting, `pylint` for linting, `mypy` for type checking.
-* You must ask before adding any external libraries or dependencies.
+### Interface Layer
+* [`cli.py`](src/forgebase/interfaces/cli.py): Click-based CLI with streaming output
+* [`web.py`](src/forgebase/interfaces/web.py): FastAPI app with `/api/chat/stream` endpoint
 
-## Coding Standards
+## Key Patterns
 
-* Always favour simplicity and minimise side-effects at all cost.
-* Google-style docstrings for every module, class, and function.
-* Full type hints; async-first design (`AsyncIterator[str]` for streaming).
-* Format with **Black**; **Pylint** and **mypy** must be clean (0 warnings).
-* No dynamic imports; no I/O in `core/`; never log secrets.
+* **Async streaming**: All message flows use `AsyncIterator[str]` for real-time responses
+* **Port/adapter**: Core logic isolated through `AgentPort` protocol
+* **Configuration-driven**: Agent selection via environment variables (Azure OpenAI or stub)
+* **Transport-agnostic**: Same `ChatService` powers CLI and web interfaces
 
-**The following must run without any error after any change:**
+## Development Setup
 
+**Required tools:** Python 3.12, semantic-kernel, FastAPI for web interface
+
+**Quality gates (must pass):**
 ```bash
 python -m black src tests && python -m pylint src tests && python -m mypy src && python -m pytest tests
 ```
 
-## UI guidelines
+**Run interfaces:**
+- CLI: `python -m forgebase.interfaces.cli chat`  
+- Web: `./start_web.sh` → http://localhost:8000
 
-* CLI must print streamed chunks immediately and add a final newline when the stream completes.
-* Future web clients should stream via SSE or WebSocket and maintain a simple, clean UX.
+## Coding Standards
+
+* **Simplicity first**: Minimize side-effects and complexity
+* **Full type hints**: Especially `AsyncIterator[str]` for streaming
+* **Google docstrings**: Every module, class, function
+* **No I/O in core/**: Keep domain logic pure
+* **Never log secrets**: Especially API keys
+* **Async-first design**: Use `asyncio` patterns throughout
+
+Ask before adding external dependencies beyond current stack.
