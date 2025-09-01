@@ -22,3 +22,7 @@ htmlcov/
 
 # Debug files
 debug_test.py
+
+# Frontend
+frontend/node_modules/
+frontend/dist/

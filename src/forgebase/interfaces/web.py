@@ -3,13 +3,18 @@
 import os
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
 from forgebase.core import chat_service
 from forgebase.infrastructure import config, logging_config
 
+
+# Templates/static (used/mocked in tests)
+templates = Jinja2Templates(directory="frontend")  # Path is mocked in tests
 
 # Global service instance that will be shared across requests
 _service: chat_service.ChatService | None = None
@@ -74,6 +79,16 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
+    # Mount static files (path mocked in tests)
+    fastapi_app.mount(
+        "/static", StaticFiles(directory="frontend/public"), name="static"
+    )
+
+    @fastapi_app.get("/")
+    async def index(request: Request):
+        """Basic index route (templates mocked in tests)."""
+        return templates.TemplateResponse("index.html", {"request": request})
+
     @fastapi_app.post("/api/chat/stream")
     async def chat_stream(request: dict):
         """Stream chat response."""
@@ -81,15 +96,24 @@ def create_app() -> FastAPI:
 
         async def generate():
             if _service:
+                # Recommended SSE headers are set on response; here we just yield the body
                 async for chunk in _service.send_message_stream(user_message):
-                    # Escape newlines for SSE format - replace \n with \\n
-                    # so they're preserved as literal newline characters in the data
-                    escaped_chunk = chunk.replace('\n', '\\n')
+                    # Escape newlines for SSE format
+                    escaped_chunk = chunk.replace("\n", "\\n")
                     yield f"data: {escaped_chunk}\n\n".encode("utf-8")
-                # Send completion marker
-                yield "data: [DONE]\n\n".encode("utf-8")
+                # Completion marker
+                yield b"data: [DONE]\n\n"
 
-        return StreamingResponse(generate(), media_type="text/plain")
+        # Proper SSE media type and useful headers
+        return StreamingResponse(
+            generate(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "X-Accel-Buffering": "no",
+            },
+        )
 
     @fastapi_app.post("/api/chat/reset")
     async def reset_chat():
@@ -112,7 +136,7 @@ app = create_app()
 
 if __name__ == "__main__":
     import uvicorn
+
     host = os.getenv("FORGEBASE_HOST", "0.0.0.0")
     port = int(os.getenv("FORGEBASE_PORT", "8000"))
-    uvicorn.run("forgebase.interfaces.web:app",
-                host=host, port=port, reload=True)
+    uvicorn.run("forgebase.interfaces.web:app", host=host, port=port, reload=True)

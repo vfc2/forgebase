@@ -22,14 +22,15 @@ class ApiService {
     }
 
     private setupInterceptors() {
+        const isDev = import.meta.env.MODE === 'development';
         // Request interceptor
         this.client.interceptors.request.use(
             (config) => {
-                console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
+                if (isDev) console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
                 return config;
             },
             (error) => {
-                console.error('API Request Error:', error);
+                if (isDev) console.error('API Request Error:', error);
                 return Promise.reject(error);
             }
         );
@@ -37,11 +38,11 @@ class ApiService {
         // Response interceptor
         this.client.interceptors.response.use(
             (response) => {
-                console.log(`API Response: ${response.status} ${response.config.url}`);
+                if (isDev) console.log(`API Response: ${response.status} ${response.config.url}`);
                 return response;
             },
             (error) => {
-                console.error('API Response Error:', error.response?.data || error.message);
+                if (isDev) console.error('API Response Error:', error.response?.data || error.message);
                 return Promise.reject(this.handleError(error));
             }
         );

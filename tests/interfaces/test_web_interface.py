@@ -161,7 +161,8 @@ class TestWebInterface(unittest.TestCase):
             response = client.post("/api/chat/stream", json={"message": "Hello"})
 
             assert response.status_code == 200
-            assert response.headers["content-type"] == "text/plain; charset=utf-8"
+            # SSE should use the text/event-stream media type
+            assert response.headers["content-type"].startswith("text/event-stream")
             # For streaming, the response might be empty in test due to TestClient limitations
             # Just verify the status code and content type
 
