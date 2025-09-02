@@ -1,5 +1,5 @@
 ---
-applyTo: "src/**"
+applyTo: "src/**,tests/**"
 ---
 # Project Overview
 
@@ -11,13 +11,13 @@ Forgebase is a minimal MVP for conversational product requirement document (PRD)
 
 ```
 /workspaces/forgebase/
-├── src/forgebase/           # Python backend (core + interfaces)
-│   ├── core/               # Transport-agnostic business logic
-│   ├── infrastructure/     # Agent implementations
-│   └── interfaces/         # CLI + Web API
+├── src/forgebase/         # Python backend (core + interfaces)
+│   ├── core/              # Transport-agnostic business logic
+│   ├── infrastructure/    # Agent implementations
+│   └── interfaces/        # CLI + Web API
 │       ├── cli.py         # CLI interface
 │       └── web.py         # FastAPI web API
-├── frontend/               # React + TypeScript + Vite web app
+├── frontend/              # React + TypeScript + Vite web app
 │   ├── package.json
 │   ├── vite.config.ts
 │   ├── src/
@@ -25,7 +25,7 @@ Forgebase is a minimal MVP for conversational product requirement document (PRD)
 │   │   ├── services/      # API client for /api/chat/stream
 │   │   └── App.tsx
 │   └── public/
-└── tests/                  # Python backend tests
+└── tests/                 # Python backend tests
 ```
 
 ## Architecture
@@ -59,14 +59,33 @@ Forgebase is a minimal MVP for conversational product requirement document (PRD)
 
 **Quality gates (must pass):**
 ```bash
-python -m black src tests && python -m pylint src tests && python -m mypy src && python -m pytest tests
+python -m black src tests
+python -m pylint src tests
+python -m mypy src
+python -m pytest tests
 ```
 
 **Run interfaces:**
-- Always use the virtual environment `source .venv/bin/activate`
-- CLI: `python -m forgebase.interfaces.cli chat`  
-- Web API: `./start_web.sh` → http://localhost:8000
-- Frontend: `cd frontend && npm run dev`
+- Always use the virtual environment:
+  ```bash
+  source .venv/bin/activate
+  ```
+- CLI:
+  ```bash
+  python -m forgebase.interfaces.cli chat
+  ```
+- Web API (direct):
+  ```bash
+  PYTHONPATH=src python src/forgebase/interfaces/web.py
+  ```
+- Frontend:
+  ```bash
+  cd frontend && npm run dev
+  ```
+- Full stack (backend + frontend):
+  ```bash
+  ./start_dev.sh
+  ```
 
 ## Coding Standards
 
@@ -77,4 +96,18 @@ python -m black src tests && python -m pylint src tests && python -m mypy src &&
 * **Never log secrets**: Especially API keys
 * **Async-first design**: Use `asyncio` patterns throughout
 
-Ask before adding external dependencies beyond current stack.
+## Strict Rules for Agents
+
+- Do not add external dependencies without approval.
+- Maintain the streaming contract (see below); do not buffer entire responses.
+- Never log secrets; keep configuration via environment variables only.
+- No I/O in `core/**`; keep domain logic pure.
+- If you change public behavior, add/adjust tests in `tests/**` accordingly.
+
+## Streaming Contract (SSE)
+
+- Endpoint: `POST /api/chat/stream`
+- Server emits UTF-8 encoded SSE lines:
+  - Data chunks: `data: <payload>\n\n` where `<payload>` has newlines escaped as `\\n`
+  - Completion: `data: [DONE]\n\n`
+- Client unescapes `\\n` back to `\n` and concatenates chunks in order.

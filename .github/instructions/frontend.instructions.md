@@ -6,14 +6,14 @@ applyTo: "frontend/**"
 
 ## Project Context
 
-Forgebase frontend is a React 18 + TypeScript + Vite application that provides a conversational chat interface for LLM interaction. It communicates with a FastAPI backend via Server-Sent Events (SSE) for real-time streaming responses.
+Forgebase frontend is a React 19 + TypeScript + Vite application that provides a conversational chat interface for LLM interaction. It communicates with a FastAPI backend via Server-Sent Events (SSE) for real-time streaming responses.
 
 **Core Purpose:** Enable users to have conversational workflows through a professional, responsive web interface that renders formatted responses with proper newline handling and markdown support.
 
 ## Architecture Overview
 
 ### Technology Stack
-- **Framework:** React 18 with TypeScript
+- **Framework:** React 19 with TypeScript
 - **Build Tool:** Vite with hot reload and dev container support  
 - **Styling:** Tailwind CSS v4 with PostCSS
 - **State Management:** TanStack Query (React Query) for server state
@@ -74,18 +74,18 @@ npm run build       # Production build validation
 - **Coverage Target:** Minimum 80% test coverage on new code
 
 ### Performance Guidelines
-- **Bundle Size:** Monitor with `npm run build` - current: 84.20 kB gzipped (target: <100 kB)
+- **Bundle Size:** Monitor with `npm run build` (target: <100 kB gzipped)
 - **Lazy Loading:** Code split routes and heavy components
 - **Memoization:** Use React.memo, useMemo, useCallback judiciously
 - **Network:** Minimize API calls, leverage React Query caching
 
 ### Current Quality Metrics
+Replace hard-coded numbers; derive on demand:
 ```bash
-# Latest verified results (September 2025):
-✅ ESLint: 0 errors, 0 warnings
-✅ TypeScript: 0 type errors
-✅ Tests: 11/11 passing (2 test files)
-✅ Build: Success - 84.20 kB gzipped bundle
+npm run lint
+npx tsc --noEmit
+npm run test:run
+npm run build
 ```
 
 ## Development Best Practices
@@ -173,13 +173,13 @@ npm run test:ui      # Run tests with UI
 ```
 
 ### Environment Variables
+Frontend should only expose Vite-prefixed variables:
 ```bash
-# Root .env configuration (automatically loaded by Vite)
-VITE_API_URL=http://localhost:8000    # Backend API URL
-VITE_API_PORT=8000                    # Backend port for dynamic URLs
-FORGEBASE_HOST=0.0.0.0               # Backend host
-FORGEBASE_PORT=8000                   # Backend port
+# frontend/.env (auto-loaded by Vite)
+VITE_API_URL=http://localhost:8000
+VITE_API_PORT=8000
 ```
+Do not include backend-only variables (e.g., FORGEBASE_HOST/PORT) in the frontend .env.
 
 ### Dev Container Considerations
 - **Host Binding:** Vite configured with `host: '0.0.0.0'` for container access
@@ -191,11 +191,13 @@ FORGEBASE_PORT=8000                   # Backend port
 ### Critical SSE Handling
 ```typescript
 // ✅ Proper newline preservation in SSE
-const line = buffer.split('\n');
+// Process "data: " lines, unescape \\n back to real newlines, stop on [DONE]
 if (line.startsWith('data: ')) {
     const data = line.slice(6);
-    // Unescape newlines for proper rendering
-    const content = data.replace(/\\n/g, '\n');
+    if (data && data !== '[DONE]') {
+        const content = data.replace(/\\n/g, '\n');
+        // append content in order
+    }
 }
 ```
 
