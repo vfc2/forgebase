@@ -1,0 +1,48 @@
+{
+    "name": "Forgebase Frontend",
+    "image": "mcr.microsoft.com/devcontainers/typescript-node:22",
+    "features": {
+        "ghcr.io/devcontainers-extra/features/zsh-plugins:1": {
+            "plugins": [
+                "z",
+                "sudo"
+            ]
+        }
+    },
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "editor.formatOnSave": true,
+                "typescript.tsdk": "node_modules/typescript/lib",
+                "eslint.workingDirectories": [
+                    "./"
+                ],
+                "files.eol": "\n"
+            },
+            "extensions": [
+                "dbaeumer.vscode-eslint",
+                "esbenp.prettier-vscode",
+                "bradlc.vscode-tailwindcss",
+                "streetsidesoftware.code-spell-checker"
+            ]
+        }
+    },
+    "forwardPorts": [
+        5173
+    ],
+    "portsAttributes": {
+        "5173": {
+            "label": "Vite Dev Server",
+            "onAutoForward": "notify"
+        }
+    },
+    "postCreateCommand": "npm ci",
+    "waitFor": "postCreateCommand",
+    "remoteUser": "node",
+    "runArgs": [
+        "--init"
+    ],
+    "containerEnv": {
+        "CI": "true"
+    }
+}

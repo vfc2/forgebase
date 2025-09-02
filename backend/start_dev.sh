@@ -22,11 +22,13 @@ fi
 
 # Check for .env file
 if [ ! -f ".env" ]; then
-    echo "⚠️  No .env file found. Copy .env.sample to .env and configure your settings."
+    echo "⚠️  No .env file found. Continuing without Azure config (StubAgent)."
     if [ -f ".env.sample" ]; then
-        echo "💡 You can run: cp .env.sample .env"
+        echo "💡 Tip: cp .env.sample .env to configure Azure OpenAI."
     fi
-    exit 1
+else
+    # shellcheck disable=SC2046
+    export $(grep -v '^#' .env | xargs) 2>/dev/null || true
 fi
 
 echo "🌐 Starting FastAPI server on http://localhost:8000..."

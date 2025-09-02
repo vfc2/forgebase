@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -23,6 +23,7 @@ if not os.path.exists("frontend") and os.path.exists("../frontend"):
     static_dir = "../frontend/public"
 
 templates = Jinja2Templates(directory=template_dir)
+has_index = os.path.exists(os.path.join(template_dir, "index.html"))
 
 # Global service instance that will be shared across requests
 _service: chat_service.ChatService | None = None
@@ -96,7 +97,19 @@ def create_app() -> FastAPI:
     @fastapi_app.get("/")
     async def index(request: Request):
         """Basic index route (templates mocked in tests)."""
-        return templates.TemplateResponse("index.html", {"request": request})
+        if has_index:
+            return templates.TemplateResponse("index.html", {"request": request})
+        # Fallback to dev frontend if templates are not present
+        frontend_host = os.getenv("FRONTEND_HOST", "localhost")
+        frontend_port = os.getenv("FRONTEND_PORT", "5173")
+        frontend_url = f"http://{frontend_host}:{frontend_port}"
+        accepts_html = "text/html" in (request.headers.get("accept") or "")
+        if accepts_html:
+            return RedirectResponse(frontend_url, status_code=307)
+        return JSONResponse(
+            {"message": "Frontend assets not found. Use the React dev server.",
+                "frontend": frontend_url}
+        )
 
     @fastapi_app.post("/api/chat/stream")
     async def chat_stream(request: dict):

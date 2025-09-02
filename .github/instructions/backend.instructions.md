@@ -10,21 +10,13 @@ Forgebase is a minimal MVP for conversational product requirement document (PRD)
 ## Folder Structure
 
 ```
-/workspaces/forgebase/
+/workspaces/forgebase/backend/
 ├── src/forgebase/         # Python backend (core + interfaces)
 │   ├── core/              # Transport-agnostic business logic
 │   ├── infrastructure/    # Agent implementations
 │   └── interfaces/        # CLI + Web API
 │       ├── cli.py         # CLI interface
 │       └── web.py         # FastAPI web API
-├── frontend/              # React + TypeScript + Vite web app
-│   ├── package.json
-│   ├── vite.config.ts
-│   ├── src/
-│   │   ├── components/
-│   │   ├── services/      # API client for /api/chat/stream
-│   │   └── App.tsx
-│   └── public/
 └── tests/                 # Python backend tests
 ```
 
