@@ -14,16 +14,16 @@ from forgebase.infrastructure import config, logging_config
 
 
 # Templates/static handling for both new and old directory structures
-template_dir = "frontend"
-static_dir = "frontend/public"
+TEMPLATE_DIR = "frontend"
+STATIC_DIR = "frontend/public"
 
 # Check if we're in the new backend-only structure
 if not os.path.exists("frontend") and os.path.exists("../frontend"):
-    template_dir = "../frontend"
-    static_dir = "../frontend/public"
+    TEMPLATE_DIR = "../frontend"
+    STATIC_DIR = "../frontend/public"
 
-templates = Jinja2Templates(directory=template_dir)
-has_index = os.path.exists(os.path.join(template_dir, "index.html"))
+templates = Jinja2Templates(directory=TEMPLATE_DIR)
+has_index = os.path.exists(os.path.join(TEMPLATE_DIR, "index.html"))
 
 # Global service instance that will be shared across requests
 _service: chat_service.ChatService | None = None
@@ -89,10 +89,8 @@ def create_app() -> FastAPI:
     )
 
     # Mount static files (path mocked in tests)
-    if os.path.exists(static_dir):
-        fastapi_app.mount(
-            "/static", StaticFiles(directory=static_dir), name="static"
-        )
+    if os.path.exists(STATIC_DIR):
+        fastapi_app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
     @fastapi_app.get("/")
     async def index(request: Request):
@@ -107,8 +105,10 @@ def create_app() -> FastAPI:
         if accepts_html:
             return RedirectResponse(frontend_url, status_code=307)
         return JSONResponse(
-            {"message": "Frontend assets not found. Use the React dev server.",
-                "frontend": frontend_url}
+            {
+                "message": "Frontend assets not found. Use the React dev server.",
+                "frontend": frontend_url,
+            }
         )
 
     @fastapi_app.post("/api/chat/stream")
@@ -161,5 +161,4 @@ if __name__ == "__main__":
 
     host = os.getenv("FORGEBASE_HOST", "0.0.0.0")
     port = int(os.getenv("FORGEBASE_PORT", "8000"))
-    uvicorn.run("forgebase.interfaces.web:app",
-                host=host, port=port, reload=True)
+    uvicorn.run("forgebase.interfaces.web:app", host=host, port=port, reload=True)
