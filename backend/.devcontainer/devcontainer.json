@@ -1,8 +1,8 @@
 {
     "name": "forgebase-backend",
-    "image": "mcr.microsoft.com/devcontainers/python:3.12",
-    "features": {
-        "ghcr.io/devcontainers/features/git:1": {}
+    "build": {
+        "context": "..",
+        "dockerfile": "Dockerfile"
     },
     "customizations": {
         "vscode": {
@@ -29,5 +29,5 @@
         }
     },
     "postCreateCommand": "python -m venv .venv && . .venv/bin/activate && python -m pip install --upgrade pip && python -m pip install -r requirements.txt -r requirements-dev.txt",
-    "workspaceFolder": "/workspaces/forgebase-backend"
+    "workspaceFolder": "/workspaces/forgebase/backend"
 }

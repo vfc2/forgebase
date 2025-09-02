@@ -1,10 +1,8 @@
-version: '3.8'
-
 services:
   backend:
     build: 
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: .devcontainer/Dockerfile
     ports:
       - "8000:8000"
     healthcheck:
@@ -24,7 +22,7 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: .devcontainer/Dockerfile
     ports:
       - "5173:5173"
     volumes:
