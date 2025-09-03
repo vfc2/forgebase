@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { AppShell } from '@mantine/core';
 import { Header } from '../layout/Header';
 import { Sidebar } from '../layout/Sidebar';
+import { useProjects } from '../../hooks/useProjects';
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -9,20 +10,29 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
     const [sidebarOpened] = useState(false);
+    const { 
+        projects, 
+        currentProjectId, 
+        createProject, 
+        deleteProject, 
+        selectProject, 
+        clearProjects 
+    } = useProjects();
 
-    const handleNewChat = () => {
-        // TODO: Implement new chat functionality
-        console.log('New chat requested');
+    const handleNewProject = (name: string) => {
+        createProject(name);
     };
 
-    const handleClearHistory = () => {
-        // TODO: Implement clear history functionality
-        console.log('Clear history requested');
+    const handleClearProjects = () => {
+        clearProjects();
     };
 
-    const handleChatSelect = (chatId: string) => {
-        // TODO: Implement chat selection functionality
-        console.log('Chat selected:', chatId);
+    const handleProjectSelect = (projectId: string) => {
+        selectProject(projectId);
+    };
+
+    const handleProjectDelete = (projectId: string) => {
+        deleteProject(projectId);
     };
 
     const handleSettingsClick = () => {
@@ -34,25 +44,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         // TODO: Implement profile functionality
         console.log('Profile clicked');
     };
-
-    // Mock chat history data - replace with real data
-    const mockChatHistory = [
-        {
-            id: '1',
-            title: 'E-commerce Platform PRD',
-            timestamp: new Date(2025, 8, 1)
-        },
-        {
-            id: '2', 
-            title: 'Mobile App Requirements',
-            timestamp: new Date(2025, 8, 2)
-        },
-        {
-            id: '3',
-            title: 'API Documentation Plan',
-            timestamp: new Date(2025, 8, 3)
-        }
-    ];
 
     return (
         <AppShell
@@ -83,11 +74,12 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             />
             
             <Sidebar
-                onNewChat={handleNewChat}
-                onClearHistory={handleClearHistory}
-                chatHistory={mockChatHistory}
-                onChatSelect={handleChatSelect}
-                currentChatId="1"
+                onNewProject={handleNewProject}
+                onClearProjects={handleClearProjects}
+                projects={projects}
+                onProjectSelect={handleProjectSelect}
+                onProjectDelete={handleProjectDelete}
+                currentProjectId={currentProjectId}
             />
 
             <AppShell.Main

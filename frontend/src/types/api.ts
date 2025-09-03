@@ -23,3 +23,9 @@ export interface StreamingResponse {
     chunk: string;
     done: boolean;
 }
+
+export interface Project {
+    id: string;
+    name: string;
+    createdAt: Date;
+}
