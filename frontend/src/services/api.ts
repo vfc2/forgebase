@@ -78,7 +78,7 @@ class ApiService {
     }
 
     // Streaming chat using fetch API (since axios doesn't handle SSE well)
-    async *streamChat(request: ChatRequest): AsyncGenerator<string, void, unknown> {
+    async *streamChat(request: ChatRequest, signal?: AbortSignal): AsyncGenerator<string, void, unknown> {
         const url = `${this.baseURL}/api/chat/stream`;
 
         try {
@@ -88,6 +88,7 @@ class ApiService {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(request),
+                signal,
             });
 
             if (!response.ok) {

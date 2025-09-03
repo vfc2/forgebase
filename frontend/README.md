@@ -25,7 +25,7 @@ A modern React + TypeScript frontend for the Forgebase conversational PRD genera
 
 - **Framework**: React 19 with TypeScript
 - **Build Tool**: Vite
-- **Styling**: Tailwind CSS with Typography plugin
+- **Styling**: Mantine UI (theme + components)
 - **State Management**: React Query (TanStack Query) for API state
 - **Markdown**: react-markdown with syntax highlighting
 - **HTTP Client**: Axios + fetch API for streaming
@@ -136,10 +136,10 @@ The build outputs to the `dist/` directory.
 
 ### Styling
 
-- **Tailwind CSS**: Utility-first CSS framework
-- **Custom design system**: Consistent colors, typography, spacing
+- **Mantine UI**: Component library with theming
+- **Custom design tokens**: Consistent colors, typography, spacing (see Mantine theme in `src/main.tsx`)
 - **Responsive**: Mobile-first responsive design
-- **Dark mode ready**: Prepared for future dark mode support
+- **Dark mode**: Controlled via `ThemeProvider`
 
 ## Contributing
 

@@ -7,6 +7,7 @@ import { MessageBubble } from './MessageBubble';
 interface MessageListProps {
     messages: ChatMessage[];
     isStreaming: boolean;
+    onExampleClick?: (text: string) => void;
 }
 
 const ExamplePrompts = [
@@ -29,7 +30,8 @@ const ExamplePrompts = [
 
 export const MessageList: React.FC<MessageListProps> = ({
     messages,
-    isStreaming
+    isStreaming,
+    onExampleClick,
 }) => {
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -71,7 +73,7 @@ export const MessageList: React.FC<MessageListProps> = ({
                                     Try these examples to get started:
                                 </Text>
                                 
-                                {ExamplePrompts.map((prompt, index) => (
+                {ExamplePrompts.map((prompt, index) => (
                                     <Paper
                                         key={index}
                                         p="md"
@@ -82,6 +84,9 @@ export const MessageList: React.FC<MessageListProps> = ({
                                         }}
                                         withBorder
                                         className="hover-card"
+                    onClick={() => onExampleClick?.(prompt.description)}
+                    role="button"
+                    aria-label={`Use example: ${prompt.title}`}
                                     >
                                         <Group gap="md">
                                             <ThemeIcon size="lg" variant="light" color="blue">

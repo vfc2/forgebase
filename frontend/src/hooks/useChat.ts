@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiService } from '../services/api';
 import type { ChatMessage } from '../types/api';
@@ -6,6 +6,7 @@ import type { ChatMessage } from '../types/api';
 export const useChat = () => {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [isStreaming, setIsStreaming] = useState(false);
+    const controllerRef = useRef<AbortController | null>(null);
     const queryClient = useQueryClient();
 
     const generateId = () => `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -54,8 +55,11 @@ export const useChat = () => {
             setIsStreaming(true);
             let fullResponse = '';
 
+            // Cancel any in-flight request before starting a new one
+            controllerRef.current?.abort();
+            controllerRef.current = new AbortController();
             // Start the streaming chat
-            const stream = apiService.streamChat({ message });
+            const stream = apiService.streamChat({ message }, controllerRef.current.signal);
 
             try {
                 for await (const chunk of stream) {
@@ -63,11 +67,15 @@ export const useChat = () => {
                     updateLastMessage(fullResponse);
                 }
             } catch (error) {
-                // Update the assistant message with error
-                updateLastMessage('Sorry, I encountered an error processing your message.');
-                throw error;
+                // On abort, do not treat as error; otherwise rethrow
+                const isAbortError = typeof error === 'object' && error !== null && 'name' in error && (error as { name?: string }).name === 'AbortError';
+                if (!isAbortError) {
+                    // keep assistant bubble but don't inject apology text
+                    throw error;
+                }
             } finally {
                 setIsStreaming(false);
+                controllerRef.current = null;
             }
 
             return fullResponse;
@@ -95,6 +103,11 @@ export const useChat = () => {
     const resetChat = useCallback(() => {
         resetChatMutation.mutate();
     }, [resetChatMutation]);
+
+    // Abort on unmount
+    useEffect(() => {
+        return () => controllerRef.current?.abort();
+    }, []);
 
     return {
         messages,

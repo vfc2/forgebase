@@ -5,7 +5,7 @@ import '@mantine/core/styles.css'
 import '@mantine/notifications/styles.css'
 // App styles
 import './index.css'
-import App from './App.tsx'
+import App from './App'
 // Mantine providers
 import { MantineProvider, createTheme } from '@mantine/core'
 import { Notifications } from '@mantine/notifications'

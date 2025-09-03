@@ -4,6 +4,7 @@ import { IconAlertCircle } from '@tabler/icons-react';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { useChat } from '../../hooks/useChat';
+import type { ApiError } from '../../types/api';
 
 export const ChatInterface: React.FC = () => {
     const {
@@ -14,24 +15,26 @@ export const ChatInterface: React.FC = () => {
         error,
     } = useChat();
 
+    const apiError = error as ApiError | null;
+
     return (
         <Box style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             {/* Error display */}
-            {error && (
+            {apiError && (
                 <Container size="lg" px="md" pt="md">
                     <Alert
                         icon={<IconAlertCircle size={16} />}
                         color="red"
                         variant="light"
                     >
-                        {error instanceof Error ? error.message : 'An error occurred'}
+                        {apiError.detail || 'An error occurred'}
                     </Alert>
                 </Container>
             )}
 
             {/* Messages */}
             <Box style={{ flex: 1, overflow: 'hidden' }}>
-                <MessageList messages={messages} isStreaming={isStreaming} />
+                <MessageList messages={messages} isStreaming={isStreaming} onExampleClick={sendMessage} />
             </Box>
 
             {/* Input */}

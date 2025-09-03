@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
+import 'highlight.js/styles/github.css';
 import { Paper, Group, Title, Button, Text, Box } from '@mantine/core';
 import { IconCopy, IconCheck } from '@tabler/icons-react';
 
@@ -67,11 +68,9 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content }) => 
 
             {/* Markdown content */}
             <Box style={{ flex: 1, overflowY: 'auto' }} p="md">
-                <div className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-primary-600 prose-code:text-primary-600 prose-pre:bg-gray-50">
-                    <ReactMarkdown rehypePlugins={[rehypeHighlight]}>
-                        {content}
-                    </ReactMarkdown>
-                </div>
+                <ReactMarkdown rehypePlugins={[rehypeHighlight]}>
+                    {content}
+                </ReactMarkdown>
             </Box>
         </Box>
     );
