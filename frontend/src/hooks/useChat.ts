@@ -3,35 +3,57 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiService } from '../services/api';
 import type { ChatMessage } from '../types/api';
 
-export const useChat = () => {
-    const [messages, setMessages] = useState<ChatMessage[]>([]);
+interface UseChatProps {
+    projectId: string | null;
+}
+
+export const useChat = ({ projectId }: UseChatProps) => {
+    // Store chat histories for each project
+    const [projectChats, setProjectChats] = useState<Record<string, ChatMessage[]>>({});
     const [isStreaming, setIsStreaming] = useState(false);
     const controllerRef = useRef<AbortController | null>(null);
     const queryClient = useQueryClient();
 
+    // Get messages for current project
+    const messages = projectId ? (projectChats[projectId] || []) : [];
+
     const generateId = () => `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
     const addMessage = useCallback((message: Omit<ChatMessage, 'id'>) => {
+        if (!projectId) return null;
+        
         const newMessage: ChatMessage = {
             ...message,
             id: generateId(),
         };
-        setMessages(prev => [...prev, newMessage]);
+        
+        setProjectChats(prev => ({
+            ...prev,
+            [projectId]: [...(prev[projectId] || []), newMessage]
+        }));
+        
         return newMessage;
-    }, []);
+    }, [projectId]);
 
     const updateLastMessage = useCallback((content: string) => {
-        setMessages(prev => {
-            if (prev.length === 0) return prev;
-            const lastMessage = prev[prev.length - 1];
+        if (!projectId) return;
+        
+        setProjectChats(prev => {
+            const currentMessages = prev[projectId] || [];
+            if (currentMessages.length === 0) return prev;
+            
+            const lastMessage = currentMessages[currentMessages.length - 1];
             if (lastMessage.role !== 'assistant') return prev;
 
-            return [
-                ...prev.slice(0, -1),
-                { ...lastMessage, content }
-            ];
+            return {
+                ...prev,
+                [projectId]: [
+                    ...currentMessages.slice(0, -1),
+                    { ...lastMessage, content }
+                ]
+            };
         });
-    }, []);
+    }, [projectId]);
 
     const sendMessageMutation = useMutation({
         mutationFn: async (message: string) => {
@@ -89,20 +111,27 @@ export const useChat = () => {
     const resetChatMutation = useMutation({
         mutationFn: apiService.resetChat,
         onSuccess: () => {
-            setMessages([]);
+            if (projectId) {
+                setProjectChats(prev => ({
+                    ...prev,
+                    [projectId]: []
+                }));
+            }
             queryClient.invalidateQueries({ queryKey: ['chat'] });
         },
     });
 
     const sendMessage = useCallback((message: string) => {
-        if (message.trim() && !isStreaming) {
+        if (message.trim() && !isStreaming && projectId) {
             sendMessageMutation.mutate(message.trim());
         }
-    }, [sendMessageMutation, isStreaming]);
+    }, [sendMessageMutation, isStreaming, projectId]);
 
     const resetChat = useCallback(() => {
-        resetChatMutation.mutate();
-    }, [resetChatMutation]);
+        if (projectId) {
+            resetChatMutation.mutate();
+        }
+    }, [resetChatMutation, projectId]);
 
     // Abort on unmount
     useEffect(() => {

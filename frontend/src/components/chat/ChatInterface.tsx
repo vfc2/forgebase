@@ -7,22 +7,22 @@ import { useChat } from '../../hooks/useChat';
 import type { ApiError } from '../../types/api';
 
 interface ChatInterfaceProps {
-    hasActiveProject: boolean;
+    projectId: string | null;
 }
 
-export const ChatInterface: React.FC<ChatInterfaceProps> = ({ hasActiveProject }) => {
+export const ChatInterface: React.FC<ChatInterfaceProps> = ({ projectId }) => {
     const {
         messages,
         isStreaming,
         sendMessage,
         isLoading,
         error,
-    } = useChat();
+    } = useChat({ projectId });
 
     const apiError = error as ApiError | null;
 
     // Show placeholder when no project is selected
-    if (!hasActiveProject) {
+    if (!projectId) {
         return (
             <Box style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Center>

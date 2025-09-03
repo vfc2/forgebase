@@ -80,7 +80,7 @@ export const Layout: React.FC = () => {
                     height: 'calc(100vh - 70px)'
                 }}
             >
-                <ChatInterface hasActiveProject={currentProjectId !== null} />
+                <ChatInterface projectId={currentProjectId} />
             </AppShell.Main>
         </AppShell>
     );

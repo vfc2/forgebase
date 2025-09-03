@@ -36,7 +36,7 @@ describe('ChatInterface', () => {
     it('renders the chat interface components when project is active', () => {
         render(
             <TestWrapper>
-                <ChatInterface hasActiveProject={true} />
+                <ChatInterface projectId="project-1" />
             </TestWrapper>
         );
         
@@ -48,7 +48,7 @@ describe('ChatInterface', () => {
     it('shows no project selected message when no project is active', () => {
         render(
             <TestWrapper>
-                <ChatInterface hasActiveProject={false} />
+                <ChatInterface projectId={null} />
             </TestWrapper>
         );
         
@@ -61,7 +61,7 @@ describe('ChatInterface', () => {
     it('shows empty state when no messages but project is active', () => {
         render(
             <TestWrapper>
-                <ChatInterface hasActiveProject={true} />
+                <ChatInterface projectId="project-1" />
             </TestWrapper>
         );
         
@@ -95,7 +95,7 @@ describe('ChatInterface', () => {
 
         render(
             <TestWrapper>
-                <ChatInterface hasActiveProject={true} />
+                <ChatInterface projectId="project-1" />
             </TestWrapper>
         );
         
@@ -120,7 +120,7 @@ describe('ChatInterface', () => {
 
         render(
             <TestWrapper>
-                <ChatInterface hasActiveProject={true} />
+                <ChatInterface projectId="project-1" />
             </TestWrapper>
         );
         
@@ -145,7 +145,7 @@ describe('ChatInterface', () => {
 
         render(
             <TestWrapper>
-                <ChatInterface hasActiveProject={true} />
+                <ChatInterface projectId="project-1" />
             </TestWrapper>
         );
         
@@ -159,7 +159,7 @@ describe('ChatInterface', () => {
     it('provides proper accessibility attributes', () => {
         render(
             <TestWrapper>
-                <ChatInterface hasActiveProject={true} />
+                <ChatInterface projectId="project-1" />
             </TestWrapper>
         );
         
@@ -176,7 +176,7 @@ describe('ChatInterface', () => {
         
         render(
             <TestWrapper>
-                <ChatInterface hasActiveProject={true} />
+                <ChatInterface projectId="project-1" />
             </TestWrapper>
         );
         
@@ -203,7 +203,7 @@ describe('ChatInterface', () => {
         
         render(
             <TestWrapper>
-                <ChatInterface hasActiveProject={true} />
+                <ChatInterface projectId="project-1" />
             </TestWrapper>
         );
         
