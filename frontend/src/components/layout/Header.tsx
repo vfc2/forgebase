@@ -56,21 +56,21 @@ export const Header: React.FC<HeaderProps> = ({
             </Box>
             <Box>
               <Title order={2} size="h3" style={{ lineHeight: 1 }}>
-                ForgeBase
+                forgebase
               </Title>
-              <Text size="xs" c="dimmed" style={{ lineHeight: 1 }}>
-                AI-Powered PRD Generation
+              <Text size="xs" c="dimmed" style={{ lineHeight: 2 }}>
+                Hackaton 2025
               </Text>
             </Box>
           </Flex>
-          
+
           <Badge
             variant="light"
             color="blue"
             leftSection={<IconSparkles size={12} />}
             size="sm"
           >
-            Beta
+            Alpha
           </Badge>
         </Group>
 
@@ -94,7 +94,7 @@ export const Header: React.FC<HeaderProps> = ({
               color="gray"
               size="lg"
               component="a"
-              href="https://github.com/your-org/forgebase"
+              href="https://github.com/vfc2/forgebase"
               target="_blank"
             >
               <IconBrandGithub size={20} />
@@ -130,9 +130,9 @@ export const Header: React.FC<HeaderProps> = ({
               >
                 Settings
               </Menu.Item>
-              
+
               <Menu.Divider />
-              
+
               <Menu.Item
                 leftSection={<IconLogout size={14} />}
                 color="red"
