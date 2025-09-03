@@ -27,7 +27,7 @@ const mockChatHistory = [
 ];
 
 describe('Sidebar', () => {
-    it('renders the New Conversation button', () => {
+    it('renders the New Project button', () => {
         const onNewChat = vi.fn();
         
         render(
@@ -36,10 +36,10 @@ describe('Sidebar', () => {
             </TestWrapper>
         );
         
-        expect(screen.getByText('New Conversation')).toBeInTheDocument();
+        expect(screen.getByText('New Project')).toBeInTheDocument();
     });
 
-    it('calls onNewChat when New Conversation button is clicked', async () => {
+    it('calls onNewChat when New Project button is clicked', async () => {
         const user = userEvent.setup();
         const onNewChat = vi.fn();
         
@@ -49,7 +49,7 @@ describe('Sidebar', () => {
             </TestWrapper>
         );
         
-        await user.click(screen.getByText('New Conversation'));
+        await user.click(screen.getByText('New Project'));
         expect(onNewChat).toHaveBeenCalledTimes(1);
     });
 

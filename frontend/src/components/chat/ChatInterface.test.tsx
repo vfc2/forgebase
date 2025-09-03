@@ -52,7 +52,7 @@ describe('ChatInterface', () => {
             </TestWrapper>
         );
         
-        expect(screen.getByText('Welcome to ForgeBase')).toBeInTheDocument();
+        expect(screen.getByText('Welcome to forgebase')).toBeInTheDocument();
     });
 
     it('displays messages when they exist', () => {

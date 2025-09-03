@@ -38,7 +38,7 @@ describe('MessageList', () => {
             </TestWrapper>
         );
         
-        expect(screen.getByText('Welcome to ForgeBase')).toBeInTheDocument();
+        expect(screen.getByText('Welcome to forgebase')).toBeInTheDocument();
     });
 
     it('renders all messages when provided', () => {

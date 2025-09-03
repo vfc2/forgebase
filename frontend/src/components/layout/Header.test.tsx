@@ -17,25 +17,25 @@ const TestWrapper = ({ children }: { children: React.ReactNode }) => (
 );
 
 describe('Header', () => {
-    it('renders the ForgeBase title and subtitle', () => {
+    it('renders the forgebase title and subtitle', () => {
         render(
             <TestWrapper>
                 <Header />
             </TestWrapper>
         );
         
-        expect(screen.getByText('ForgeBase')).toBeInTheDocument();
-        expect(screen.getByText('AI-Powered PRD Generation')).toBeInTheDocument();
+        expect(screen.getByText('forgebase')).toBeInTheDocument();
+        expect(screen.getByText('Microsoft Hackaton 2025')).toBeInTheDocument();
     });
 
-    it('displays the Beta badge', () => {
+    it('displays the Alpha badge', () => {
         render(
             <TestWrapper>
                 <Header />
             </TestWrapper>
         );
         
-        expect(screen.getByText('Beta')).toBeInTheDocument();
+        expect(screen.getByText('Alpha')).toBeInTheDocument();
     });
 
     it('renders theme toggle button', () => {
@@ -106,6 +106,6 @@ describe('Header', () => {
         );
         
         // GitHub link should have tooltip
-        expect(screen.getByRole('link')).toHaveAttribute('href', 'https://github.com/your-org/forgebase');
+        expect(screen.getByRole('link')).toHaveAttribute('href', 'https://github.com/vfc2/forgebase');
     });
 });
