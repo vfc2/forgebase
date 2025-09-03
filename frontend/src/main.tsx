@@ -101,10 +101,16 @@ export function AppWithTheme() {
   );
 }
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
+function RootApp() {
+  return (
     <ThemeProvider>
       <AppWithTheme />
     </ThemeProvider>
+  );
+}
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <RootApp />
   </StrictMode>,
 )
