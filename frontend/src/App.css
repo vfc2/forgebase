@@ -15,3 +15,50 @@
     opacity: 0.5;
   }
 }
+
+/* Hover effects for interactive elements */
+.hover-card {
+  transition: all 0.2s ease;
+}
+
+.hover-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Smooth transitions for all interactive elements */
+button, .mantine-Button-root, .mantine-ActionIcon-root {
+  transition: all 0.2s ease;
+}
+
+/* Custom scrollbar styling */
+.mantine-ScrollArea-scrollbar {
+  background: transparent;
+}
+
+.mantine-ScrollArea-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.mantine-ScrollArea-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Gradient animations */
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.gradient-animated {
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}

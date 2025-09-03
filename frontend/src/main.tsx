@@ -26,8 +26,60 @@ const theme = createTheme({
       '#075985', // 800
       '#0c4a6e', // 900
     ],
+    gray: [
+      '#fafafa', // 50
+      '#f5f5f5', // 100
+      '#e5e5e5', // 200
+      '#d4d4d4', // 300
+      '#a3a3a3', // 400
+      '#737373', // 500
+      '#525252', // 600
+      '#404040', // 700
+      '#262626', // 800
+      '#171717', // 900
+    ],
   },
   defaultRadius: 'md',
+  spacing: {
+    xs: '8px',
+    sm: '12px',
+    md: '16px',
+    lg: '24px',
+    xl: '32px',
+  },
+  shadows: {
+    xs: '0 1px 3px rgba(0, 0, 0, 0.1)',
+    sm: '0 1px 6px rgba(0, 0, 0, 0.1)',
+    md: '0 4px 12px rgba(0, 0, 0, 0.1)',
+    lg: '0 8px 24px rgba(0, 0, 0, 0.1)',
+    xl: '0 16px 48px rgba(0, 0, 0, 0.1)',
+  },
+  headings: {
+    fontFamily: 'Inter, system-ui, sans-serif',
+    fontWeight: '600',
+  },
+  components: {
+    Button: {
+      defaultProps: {
+        radius: 'md',
+      },
+    },
+    Paper: {
+      defaultProps: {
+        radius: 'md',
+      },
+    },
+    TextInput: {
+      defaultProps: {
+        radius: 'md',
+      },
+    },
+    Textarea: {
+      defaultProps: {
+        radius: 'md',
+      },
+    },
+  },
 })
 
 createRoot(document.getElementById('root')!).render(

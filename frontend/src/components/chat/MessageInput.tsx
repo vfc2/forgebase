@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Group, Textarea, ActionIcon, Paper, Text, Box } from '@mantine/core';
+import { Group, Textarea, ActionIcon, Paper, Text, Container } from '@mantine/core';
 import { IconSend, IconLoader } from '@tabler/icons-react';
 
 interface MessageInputProps {
@@ -31,8 +31,15 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     };
 
     return (
-        <Paper withBorder p="md" style={{ borderTop: '1px solid var(--mantine-color-gray-3)' }}>
-            <Box maw={800} mx="auto">
+        <Paper 
+            p="md" 
+            shadow="sm"
+            style={{ 
+                borderTop: '1px solid var(--mantine-color-gray-3)',
+                background: 'var(--mantine-color-gray-0)'
+            }}
+        >
+            <Container size="lg">
                 <form onSubmit={handleSubmit}>
                     <Group gap="sm" align="flex-end">
                         <Textarea
@@ -45,25 +52,43 @@ export const MessageInput: React.FC<MessageInputProps> = ({
                             autosize
                             minRows={1}
                             maxRows={4}
+                            styles={{
+                                input: {
+                                    border: '1px solid var(--mantine-color-gray-4)',
+                                    background: 'white',
+                                    fontSize: '14px',
+                                    '&:focus': {
+                                        borderColor: 'var(--mantine-color-blue-5)',
+                                        boxShadow: '0 0 0 1px var(--mantine-color-blue-5)'
+                                    }
+                                }
+                            }}
                         />
                         <ActionIcon
                             type="submit"
                             disabled={!message.trim() || disabled}
-                            size="lg"
-                            variant="filled"
+                            size="xl"
+                            variant="gradient"
+                            gradient={{ from: 'blue', to: 'cyan', deg: 45 }}
+                            style={{ minWidth: '42px', minHeight: '42px' }}
                         >
                             {disabled ? (
-                                <IconLoader size={16} className="animate-spin" />
+                                <IconLoader size={18} className="animate-spin" />
                             ) : (
-                                <IconSend size={16} />
+                                <IconSend size={18} />
                             )}
                         </ActionIcon>
                     </Group>
                 </form>
-                <Text size="xs" c="dimmed" mt="xs">
-                    Press Enter to send, Shift+Enter for new line
-                </Text>
-            </Box>
+                <Group justify="space-between" mt="xs">
+                    <Text size="xs" c="dimmed">
+                        Press Enter to send, Shift+Enter for new line
+                    </Text>
+                    <Text size="xs" c="dimmed">
+                        {message.length}/2000 characters
+                    </Text>
+                </Group>
+            </Container>
         </Paper>
     );
 };
