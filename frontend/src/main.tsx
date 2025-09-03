@@ -9,6 +9,7 @@ import App from './App.tsx'
 // Mantine providers
 import { MantineProvider, createTheme } from '@mantine/core'
 import { Notifications } from '@mantine/notifications'
+import { ThemeProvider, useTheme } from './hooks/useTheme.tsx'
 
 const theme = createTheme({
   fontFamily: 'Inter, system-ui, sans-serif',
@@ -82,11 +83,21 @@ const theme = createTheme({
   },
 })
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <MantineProvider theme={theme} defaultColorScheme="auto">
+function AppWithTheme() {
+  const { colorScheme } = useTheme();
+  
+  return (
+    <MantineProvider theme={theme} forceColorScheme={colorScheme}>
       <Notifications position="top-right" />
       <App />
     </MantineProvider>
+  );
+}
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <ThemeProvider>
+      <AppWithTheme />
+    </ThemeProvider>
   </StrictMode>,
 )

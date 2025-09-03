@@ -19,8 +19,11 @@ import {
   IconBrandGithub,
   IconHelp,
   IconSparkles,
-  IconCode
+  IconCode,
+  IconSun,
+  IconMoon
 } from '@tabler/icons-react';
+import { useTheme } from '../../hooks/useTheme';
 
 interface HeaderProps {
   onSettingsClick?: () => void;
@@ -31,6 +34,8 @@ export const Header: React.FC<HeaderProps> = ({
   onSettingsClick,
   onProfileClick
 }) => {
+  const { colorScheme, toggleColorScheme } = useTheme();
+
   return (
     <AppShell.Header p="md">
       <Group justify="space-between" h="100%">
@@ -71,6 +76,17 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Right side - Actions and user menu */}
         <Group gap="sm">
+          <Tooltip label={colorScheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
+            <ActionIcon
+              variant="subtle"
+              color="gray"
+              size="lg"
+              onClick={toggleColorScheme}
+            >
+              {colorScheme === 'dark' ? <IconSun size={20} /> : <IconMoon size={20} />}
+            </ActionIcon>
+          </Tooltip>
+
           <Tooltip label="View on GitHub">
             <ActionIcon
               variant="subtle"
