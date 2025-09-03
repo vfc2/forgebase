@@ -1,4 +1,6 @@
 import React from 'react';
+import { Group, Avatar, Paper, Text, Box } from '@mantine/core';
+import { IconUser, IconRobot } from '@tabler/icons-react';
 import type { ChatMessage } from '../../types/api';
 
 interface MessageBubbleProps {
@@ -13,74 +15,60 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
     const isUser = message.role === 'user';
 
     return (
-        <div className="message-bubble" style={{
-            width: '100%',
-            marginBottom: '1rem',
-            display: 'flex',
-            justifyContent: isUser ? 'flex-end' : 'flex-start'
-        }}>
-            <div style={{
-                display: 'flex',
-                maxWidth: '80%',
-                gap: '0.75rem',
-                flexDirection: isUser ? 'row-reverse' : 'row'
-            }}>
-                {/* Avatar */}
-                <div style={{
-                    flexShrink: 0,
-                    width: '2rem',
-                    height: '2rem',
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '0.875rem',
-                    fontWeight: '500',
-                    backgroundColor: isUser ? '#3b82f6' : '#e5e7eb',
-                    color: isUser ? 'white' : '#374151'
-                }}>
-                    {isUser ? 'U' : 'A'}
-                </div>
+        <Box mb="md">
+            <Group
+                align="flex-start"
+                gap="sm"
+                justify={isUser ? 'flex-end' : 'flex-start'}
+                wrap="nowrap"
+            >
+                {!isUser && (
+                    <Avatar color="gray" radius="xl" size="sm">
+                        <IconRobot size={16} />
+                    </Avatar>
+                )}
 
-                {/* Message content */}
-                <div style={{
-                    borderRadius: '0.5rem',
-                    padding: '0.75rem 1rem',
-                    fontSize: '0.875rem',
-                    backgroundColor: isUser ? '#3b82f6' : 'white',
-                    color: isUser ? 'white' : '#111827',
-                    border: isUser ? 'none' : '1px solid #d1d5db'
-                }}>
-                    <div style={{
-                        whiteSpace: 'pre-wrap',
-                        wordBreak: 'break-word',
-                        lineHeight: '1.5'
-                    }}>
+                <Paper
+                    p="sm"
+                    radius="md"
+                    bg={isUser ? 'blue' : 'gray.0'}
+                    c={isUser ? 'white' : 'dark'}
+                    maw="80%"
+                    withBorder={!isUser}
+                >
+                    <Text size="sm" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
                         {message.content}
                         {isStreaming && (
-                            <span style={{
-                                display: 'inline-block',
-                                width: '0.5rem',
-                                height: '1rem',
-                                marginLeft: '0.25rem',
-                                backgroundColor: 'currentColor',
-                                animation: 'pulse 1s ease-in-out infinite'
-                            }} />
+                            <Text
+                                component="span"
+                                display="inline-block"
+                                w={2}
+                                h={16}
+                                ml={2}
+                                bg="currentColor"
+                                style={{ animation: 'pulse 1s ease-in-out infinite' }}
+                            />
                         )}
-                    </div>
-                    <div style={{
-                        fontSize: '0.75rem',
-                        marginTop: '0.25rem',
-                        opacity: 0.7,
-                        color: isUser ? '#dbeafe' : '#6b7280'
-                    }}>
+                    </Text>
+                    <Text
+                        size="xs"
+                        mt={2}
+                        opacity={0.7}
+                        c={isUser ? 'blue.1' : 'dimmed'}
+                    >
                         {message.timestamp.toLocaleTimeString([], {
                             hour: '2-digit',
                             minute: '2-digit'
                         })}
-                    </div>
-                </div>
-            </div>
-        </div>
+                    </Text>
+                </Paper>
+
+                {isUser && (
+                    <Avatar color="blue" radius="xl" size="sm">
+                        <IconUser size={16} />
+                    </Avatar>
+                )}
+            </Group>
+        </Box>
     );
 };

@@ -1,94 +1,17 @@
-/* Basic styles for the chat application */
+/* Basic app styles */
 #root {
   width: 100%;
   min-height: 100vh;
   margin: 0;
   padding: 0;
-  font-family: Inter, system-ui, sans-serif;
 }
 
-/* Chat layout styles */
-.chat-container {
-  max-width: 1024px;
-  margin: 0 auto;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: white;
-  border-left: 1px solid #e2e8f0;
-  border-right: 1px solid #e2e8f0;
-}
-
-.chat-header {
-  padding: 1rem 2rem;
-  border-bottom: 1px solid #e2e8f0;
-  background: #f8fafc;
-}
-
-.chat-header h1 {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #1e293b;
-}
-
-.chat-messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1rem;
-  background: #fafafa;
-}
-
-.chat-input-area {
-  padding: 1rem 2rem 2rem;
-  border-top: 1px solid #e2e8f0;
-  background: white;
-}
-
-.message-bubble {
-  margin-bottom: 1rem;
-  padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
-  max-width: 70%;
-}
-
-.message-user {
-  background: #3b82f6;
-  color: white;
-  margin-left: auto;
-}
-
-.message-assistant {
-  background: #f1f5f9;
-  color: #1e293b;
-  margin-right: auto;
-}
-
-.input-container {
-  display: flex;
-  gap: 0.5rem;
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
+/* Pulse animation for streaming indicator */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
   }
-
-  to {
-    transform: rotate(360deg);
+  50% {
+    opacity: 0.5;
   }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
 }

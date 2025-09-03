@@ -1,4 +1,5 @@
 import React from 'react';
+import { AppShell, Title, Text } from '@mantine/core';
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -6,19 +7,20 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
     return (
-        <div className="chat-container">
-            {/* Header */}
-            <header className="chat-header">
-                <h1>Forgebase Chat</h1>
-                <div style={{ fontSize: '0.875rem', color: '#64748b', marginTop: '0.25rem' }}>
+        <AppShell
+            header={{ height: 70 }}
+            padding="md"
+        >
+            <AppShell.Header p="md">
+                <Title order={1} size="h2">Forgebase Chat</Title>
+                <Text size="sm" c="dimmed">
                     Conversational PRD Generation
-                </div>
-            </header>
+                </Text>
+            </AppShell.Header>
 
-            {/* Main content */}
-            <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <AppShell.Main style={{ display: 'flex', flexDirection: 'column' }}>
                 {children}
-            </main>
-        </div>
+            </AppShell.Main>
+        </AppShell>
     );
 };

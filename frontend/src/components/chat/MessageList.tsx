@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { Box, Text, Center, Stack } from '@mantine/core';
 import type { ChatMessage } from '../../types/api';
 import { MessageBubble } from './MessageBubble';
 
@@ -23,31 +24,22 @@ export const MessageList: React.FC<MessageListProps> = ({
 
     if (messages.length === 0) {
         return (
-            <div className="chat-messages" style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#6b7280'
-            }}>
-                <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.125rem', fontWeight: '500', marginBottom: '0.5rem' }}>
+            <Center style={{ flex: 1 }}>
+                <Stack align="center" gap="xs">
+                    <Text size="lg" fw={500} c="dimmed">
                         Welcome to Forgebase Chat
-                    </div>
-                    <div style={{ fontSize: '0.875rem' }}>
+                    </Text>
+                    <Text size="sm" c="dimmed">
                         Start a conversation to generate PRDs and work plans
-                    </div>
-                </div>
-            </div>
+                    </Text>
+                </Stack>
+            </Center>
         );
     }
 
     return (
-        <div className="chat-messages" style={{
-            flex: 1,
-            overflowY: 'auto',
-            padding: '1rem'
-        }}>
-            <div style={{ maxWidth: '64rem', margin: '0 auto' }}>
+        <Box style={{ flex: 1, overflowY: 'auto' }} p="md">
+            <Box maw={800} mx="auto">
                 {messages.map((message, index) => (
                     <MessageBubble
                         key={message.id}
@@ -56,7 +48,7 @@ export const MessageList: React.FC<MessageListProps> = ({
                     />
                 ))}
                 <div ref={messagesEndRef} />
-            </div>
-        </div>
+            </Box>
+        </Box>
     );
 };
