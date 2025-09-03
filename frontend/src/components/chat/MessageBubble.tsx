@@ -34,7 +34,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                     p="sm"
                     radius="md"
                     bg={isUser ? 'blue' : 'light-dark(#f8f9fa, var(--mantine-color-dark-6))'}
-                    c={isUser ? 'white' : 'dark'}
+                    c={isUser ? 'white' : 'var(--mantine-color-text)'}
                     maw="80%"
                     withBorder={!isUser}
                     style={{
@@ -59,7 +59,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                         size="xs"
                         mt={2}
                         opacity={0.7}
-                        c={isUser ? 'blue.1' : 'dimmed'}
+                        c={isUser ? 'blue.1' : 'var(--mantine-color-text)'}
                     >
                         {message.timestamp.toLocaleTimeString([], {
                             hour: '2-digit',

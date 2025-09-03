@@ -60,33 +60,33 @@ export const MessageList: React.FC<MessageListProps> = ({
                                     <IconSparkles size={40} />
                                 </ThemeIcon>
                                 <Text size="xl" fw={600} mb="xs">
-                                    Welcome to ForgeBase
+                                    Welcome to forgebase
                                 </Text>
-                                <Text size="md" c="dimmed" mb="xl">
-                                    I'll help you create comprehensive Product Requirements Documents (PRDs) 
+                                <Text size="md" c="var(--mantine-color-text)" mb="xl">
+                                    I'll help you create comprehensive Product Requirements Documents (PRDs)
                                     through conversational AI. Just describe your project and let's get started!
                                 </Text>
                             </Box>
 
                             <Stack gap="md" w="100%">
-                                <Text size="sm" fw={500} c="dimmed" ta="center">
+                                <Text size="sm" fw={500} c="var(--mantine-color-text)" ta="center">
                                     Try these examples to get started:
                                 </Text>
-                                
-                {ExamplePrompts.map((prompt, index) => (
+
+                                {ExamplePrompts.map((prompt, index) => (
                                     <Paper
                                         key={index}
                                         p="md"
-                                        style={{ 
+                                        style={{
                                             cursor: 'pointer',
                                             backgroundColor: 'light-dark(#f8f9fa, var(--mantine-color-dark-6))',
                                             borderColor: 'light-dark(#e8eaed, var(--mantine-color-dark-5))'
                                         }}
                                         withBorder
                                         className="hover-card"
-                    onClick={() => onExampleClick?.(prompt.description)}
-                    role="button"
-                    aria-label={`Use example: ${prompt.title}`}
+                                        onClick={() => onExampleClick?.(prompt.description)}
+                                        role="button"
+                                        aria-label={`Use example: ${prompt.title}`}
                                     >
                                         <Group gap="md">
                                             <ThemeIcon size="lg" variant="light" color="blue">
@@ -96,7 +96,7 @@ export const MessageList: React.FC<MessageListProps> = ({
                                                 <Text fw={500} size="sm" mb={4}>
                                                     {prompt.title}
                                                 </Text>
-                                                <Text size="xs" c="dimmed">
+                                                <Text size="xs" c="var(--mantine-color-text)">
                                                     {prompt.description}
                                                 </Text>
                                             </Box>

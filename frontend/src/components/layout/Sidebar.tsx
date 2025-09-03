@@ -45,7 +45,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           gradient={{ from: 'blue', to: 'cyan', deg: 45 }}
           variant="gradient"
         >
-          New Conversation
+          New Project
         </Button>
       </AppShell.Section>
 
@@ -53,8 +53,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       <AppShell.Section>
         <Group justify="space-between" mb="sm">
-          <Text size="sm" fw={500} c="dimmed">
-            Recent Conversations
+          <Text size="sm" fw={500} c="var(--mantine-color-text)">
+            Recent Projects
           </Text>
           {chatHistory.length > 0 && (
             <Tooltip label="Clear History">
@@ -75,7 +75,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <AppShell.Section grow component={ScrollArea}>
         <Stack gap="xs">
           {chatHistory.length === 0 ? (
-            <Text size="sm" c="dimmed" ta="center" py="lg">
+            <Text size="sm" c="var(--mantine-color-text)" ta="center" py="lg">
               No conversations yet
             </Text>
           ) : (
@@ -96,7 +96,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <Text size="sm" fw={500} truncate>
                     {chat.title}
                   </Text>
-                  <Text size="xs" c="dimmed">
+                  <Text size="xs" c="var(--mantine-color-text)">
                     {chat.timestamp.toLocaleDateString()}
                   </Text>
                 </div>
@@ -119,7 +119,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             Tips & Examples
           </Button>
-          
+
           <Button
             variant="subtle"
             color="gray"

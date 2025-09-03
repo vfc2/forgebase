@@ -19,7 +19,6 @@ import {
   IconBrandGithub,
   IconHelp,
   IconSparkles,
-  IconCode,
   IconSun,
   IconMoon
 } from '@tabler/icons-react';
@@ -42,24 +41,29 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Left side - Logo and title */}
         <Group gap="lg">
           <Flex align="center" gap="sm">
+            {/* Microsoft Logo */}
             <Box
               style={{
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                borderRadius: '8px',
-                padding: '8px',
+                width: 32,
+                height: 32,
                 display: 'flex',
+                flexWrap: 'wrap',
+                gap: 2,
                 alignItems: 'center',
                 justifyContent: 'center'
               }}
             >
-              <IconCode size={24} color="white" />
+              <Box style={{ width: 14, height: 14, backgroundColor: '#F25022', borderRadius: 1 }} />
+              <Box style={{ width: 14, height: 14, backgroundColor: '#7FBA00', borderRadius: 1 }} />
+              <Box style={{ width: 14, height: 14, backgroundColor: '#00A4EF', borderRadius: 1 }} />
+              <Box style={{ width: 14, height: 14, backgroundColor: '#FFB900', borderRadius: 1 }} />
             </Box>
             <Box>
               <Title order={2} size="h3" style={{ lineHeight: 1 }}>
                 forgebase
               </Title>
-              <Text size="xs" c="dimmed" style={{ lineHeight: 2 }}>
-                Hackaton 2025
+              <Text size="xs" c="var(--mantine-color-text)" style={{ lineHeight: 2 }}>
+                Microsoft Hackaton 2025
               </Text>
             </Box>
           </Flex>

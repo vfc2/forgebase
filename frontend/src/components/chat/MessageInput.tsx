@@ -32,10 +32,10 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     };
 
     return (
-        <Paper 
-            p="md" 
+        <Paper
+            p="md"
             shadow="sm"
-            style={{ 
+            style={{
                 borderTop: '1px solid var(--mantine-color-gray-3)',
                 backgroundColor: 'light-dark(#f8f9fa, var(--mantine-color-dark-7))'
             }}
@@ -80,10 +80,10 @@ export const MessageInput: React.FC<MessageInputProps> = ({
                     </Group>
                 </form>
                 <Group justify="space-between" mt="xs">
-                    <Text size="xs" c="dimmed">
+                    <Text size="xs" c="var(--mantine-color-text)">
                         Press Enter to send, Shift+Enter for new line
                     </Text>
-                    <Text size="xs" c="dimmed">
+                    <Text size="xs" c="var(--mantine-color-text)">
                         {message.length}/{MAX_LEN} characters
                     </Text>
                 </Group>

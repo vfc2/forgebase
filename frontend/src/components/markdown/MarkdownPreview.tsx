@@ -34,10 +34,10 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content }) => 
                 </Paper>
                 <Box style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Box ta="center">
-                        <Title order={3} size="md" mb="xs" c="dimmed">
+                        <Title order={3} size="md" mb="xs" c="var(--mantine-color-text)">
                             No content to preview
                         </Title>
-                        <Text size="sm" c="dimmed">
+                        <Text size="sm" c="var(--mantine-color-text)">
                             Markdown content will appear here when available
                         </Text>
                     </Box>
