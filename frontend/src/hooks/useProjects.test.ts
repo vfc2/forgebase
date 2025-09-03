@@ -144,25 +144,4 @@ describe('useProjects', () => {
 
     expect(result.current.currentProjectId).toBe('uuid-1');
   });
-
-  it('clears all projects and current selection', () => {
-    const { result } = renderHook(() => useProjects());
-    
-    mockUUID.mockReturnValueOnce('uuid-1');
-    act(() => {
-      result.current.createProject('Project 1');
-    });
-
-    mockUUID.mockReturnValueOnce('uuid-2');
-    act(() => {
-      result.current.createProject('Project 2');
-    });
-
-    act(() => {
-      result.current.clearProjects();
-    });
-
-    expect(result.current.projects).toEqual([]);
-    expect(result.current.currentProjectId).toBeNull();
-  });
 });

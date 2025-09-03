@@ -33,10 +33,10 @@ describe('ChatInterface', () => {
         });
     });
 
-    it('renders the chat interface components', () => {
+    it('renders the chat interface components when project is active', () => {
         render(
             <TestWrapper>
-                <ChatInterface />
+                <ChatInterface hasActiveProject={true} />
             </TestWrapper>
         );
         
@@ -45,10 +45,23 @@ describe('ChatInterface', () => {
         expect(screen.getByRole('button', { name: /send message/i })).toBeInTheDocument();
     });
 
-    it('shows empty state when no messages', () => {
+    it('shows no project selected message when no project is active', () => {
         render(
             <TestWrapper>
-                <ChatInterface />
+                <ChatInterface hasActiveProject={false} />
+            </TestWrapper>
+        );
+        
+        expect(screen.getByText('No Project Selected')).toBeInTheDocument();
+        expect(screen.getByText(/Please select or create a project from the sidebar/)).toBeInTheDocument();
+        // Should not render input when no project is selected
+        expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    });
+
+    it('shows empty state when no messages but project is active', () => {
+        render(
+            <TestWrapper>
+                <ChatInterface hasActiveProject={true} />
             </TestWrapper>
         );
         
@@ -82,7 +95,7 @@ describe('ChatInterface', () => {
 
         render(
             <TestWrapper>
-                <ChatInterface />
+                <ChatInterface hasActiveProject={true} />
             </TestWrapper>
         );
         
@@ -107,7 +120,7 @@ describe('ChatInterface', () => {
 
         render(
             <TestWrapper>
-                <ChatInterface />
+                <ChatInterface hasActiveProject={true} />
             </TestWrapper>
         );
         
@@ -132,7 +145,7 @@ describe('ChatInterface', () => {
 
         render(
             <TestWrapper>
-                <ChatInterface />
+                <ChatInterface hasActiveProject={true} />
             </TestWrapper>
         );
         
@@ -146,7 +159,7 @@ describe('ChatInterface', () => {
     it('provides proper accessibility attributes', () => {
         render(
             <TestWrapper>
-                <ChatInterface />
+                <ChatInterface hasActiveProject={true} />
             </TestWrapper>
         );
         
@@ -163,7 +176,7 @@ describe('ChatInterface', () => {
         
         render(
             <TestWrapper>
-                <ChatInterface />
+                <ChatInterface hasActiveProject={true} />
             </TestWrapper>
         );
         
@@ -190,7 +203,7 @@ describe('ChatInterface', () => {
         
         render(
             <TestWrapper>
-                <ChatInterface />
+                <ChatInterface hasActiveProject={true} />
             </TestWrapper>
         );
         

@@ -8,7 +8,6 @@ import {
   Group,
   ScrollArea,
   ActionIcon,
-  Tooltip,
   Modal,
   TextInput,
   Menu,
@@ -27,7 +26,6 @@ import type { Project } from '../../types/api';
 
 interface SidebarProps {
   onNewProject: (name: string) => void;
-  onClearProjects?: () => void;
   projects?: Project[];
   onProjectSelect?: (projectId: string) => void;
   onProjectDelete?: (projectId: string) => void;
@@ -36,7 +34,6 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({
   onNewProject,
-  onClearProjects,
   projects = [],
   onProjectSelect,
   onProjectDelete,
@@ -85,19 +82,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <Text size="sm" fw={500} c="var(--mantine-color-text)">
               Recent Projects
             </Text>
-            {projects.length > 0 && (
-              <Tooltip label="Clear Projects">
-                <ActionIcon
-                  size="sm"
-                  variant="subtle"
-                  color="gray"
-                  onClick={onClearProjects}
-                  aria-label="Clear Projects"
-                >
-                  <IconTrash size={14} />
-                </ActionIcon>
-              </Tooltip>
-            )}
           </Group>
         </AppShell.Section>
 

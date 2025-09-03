@@ -1,12 +1,16 @@
 import React from 'react';
-import { Box, Alert, Container } from '@mantine/core';
-import { IconAlertCircle } from '@tabler/icons-react';
+import { Box, Alert, Container, Text, Center, Stack } from '@mantine/core';
+import { IconAlertCircle, IconFolder } from '@tabler/icons-react';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { useChat } from '../../hooks/useChat';
 import type { ApiError } from '../../types/api';
 
-export const ChatInterface: React.FC = () => {
+interface ChatInterfaceProps {
+    hasActiveProject: boolean;
+}
+
+export const ChatInterface: React.FC<ChatInterfaceProps> = ({ hasActiveProject }) => {
     const {
         messages,
         isStreaming,
@@ -16,6 +20,25 @@ export const ChatInterface: React.FC = () => {
     } = useChat();
 
     const apiError = error as ApiError | null;
+
+    // Show placeholder when no project is selected
+    if (!hasActiveProject) {
+        return (
+            <Box style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Center>
+                    <Stack align="center" gap="md">
+                        <IconFolder size={48} color="var(--mantine-color-gray-6)" />
+                        <Text size="lg" fw={500} c="var(--mantine-color-gray-7)">
+                            No Project Selected
+                        </Text>
+                        <Text size="sm" c="var(--mantine-color-gray-6)" ta="center">
+                            Please select or create a project from the sidebar to start chatting.
+                        </Text>
+                    </Stack>
+                </Center>
+            </Box>
+        );
+    }
 
     return (
         <Box style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -33,7 +56,7 @@ export const ChatInterface: React.FC = () => {
             )}
 
             {/* Messages */}
-            <Box style={{ flex: 1, overflow: 'hidden' }}>
+            <Box style={{ flex: 1 }}>
                 <MessageList messages={messages} isStreaming={isStreaming} onExampleClick={sendMessage} />
             </Box>
 

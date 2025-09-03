@@ -114,36 +114,17 @@ describe('Sidebar', () => {
         expect(currentProjectButton).toHaveAttribute('data-variant', 'light');
     });
 
-    it('shows clear projects button when projects exist', () => {
+    it('does not show clear projects button', () => {
         render(
             <TestWrapper>
                 <Sidebar 
                     onNewProject={vi.fn()}
                     projects={mockProjects}
-                    onClearProjects={vi.fn()}
                 />
             </TestWrapper>
         );
         
-        expect(screen.getByLabelText('Clear Projects')).toBeInTheDocument();
-    });
-
-    it('calls onClearProjects when clear projects button is clicked', async () => {
-        const user = userEvent.setup();
-        const onClearProjects = vi.fn();
-        
-        render(
-            <TestWrapper>
-                <Sidebar 
-                    onNewProject={vi.fn()}
-                    projects={mockProjects}
-                    onClearProjects={onClearProjects}
-                />
-            </TestWrapper>
-        );
-        
-        await user.click(screen.getByLabelText('Clear Projects'));
-        expect(onClearProjects).toHaveBeenCalledTimes(1);
+        expect(screen.queryByLabelText('Clear Projects')).not.toBeInTheDocument();
     });
 
     it('creates a project when form is submitted with valid name', async () => {

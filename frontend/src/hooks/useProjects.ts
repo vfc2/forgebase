@@ -7,7 +7,6 @@ interface UseProjectsReturn {
   createProject: (name: string) => void;
   deleteProject: (id: string) => void;
   selectProject: (id: string) => void;
-  clearProjects: () => void;
 }
 
 export const useProjects = (): UseProjectsReturn => {
@@ -38,17 +37,11 @@ export const useProjects = (): UseProjectsReturn => {
     setCurrentProjectId(id);
   }, []);
 
-  const clearProjects = useCallback(() => {
-    setProjects([]);
-    setCurrentProjectId(null);
-  }, []);
-
   return {
     projects,
     currentProjectId,
     createProject,
     deleteProject,
     selectProject,
-    clearProjects,
   };
 };

@@ -2,29 +2,21 @@ import React, { useState } from 'react';
 import { AppShell } from '@mantine/core';
 import { Header } from '../layout/Header';
 import { Sidebar } from '../layout/Sidebar';
+import { ChatInterface } from '../chat/ChatInterface';
 import { useProjects } from '../../hooks/useProjects';
 
-interface LayoutProps {
-    children: React.ReactNode;
-}
-
-export const Layout: React.FC<LayoutProps> = ({ children }) => {
+export const Layout: React.FC = () => {
     const [sidebarOpened] = useState(false);
     const { 
         projects, 
         currentProjectId, 
         createProject, 
         deleteProject, 
-        selectProject, 
-        clearProjects 
+        selectProject
     } = useProjects();
 
     const handleNewProject = (name: string) => {
         createProject(name);
-    };
-
-    const handleClearProjects = () => {
-        clearProjects();
     };
 
     const handleProjectSelect = (projectId: string) => {
@@ -75,7 +67,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             
             <Sidebar
                 onNewProject={handleNewProject}
-                onClearProjects={handleClearProjects}
                 projects={projects}
                 onProjectSelect={handleProjectSelect}
                 onProjectDelete={handleProjectDelete}
@@ -89,7 +80,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                     height: 'calc(100vh - 70px)'
                 }}
             >
-                {children}
+                <ChatInterface hasActiveProject={currentProjectId !== null} />
             </AppShell.Main>
         </AppShell>
     );
