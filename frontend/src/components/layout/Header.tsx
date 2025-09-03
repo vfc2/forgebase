@@ -82,6 +82,7 @@ export const Header: React.FC<HeaderProps> = ({
               color="gray"
               size="lg"
               onClick={toggleColorScheme}
+              aria-label={colorScheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             >
               {colorScheme === 'dark' ? <IconSun size={20} /> : <IconMoon size={20} />}
             </ActionIcon>
@@ -108,7 +109,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           <Menu shadow="md" width={200} position="bottom-end">
             <Menu.Target>
-              <ActionIcon variant="subtle" color="gray" size="lg">
+              <ActionIcon variant="subtle" color="gray" size="lg" aria-label="Account menu">
                 <Avatar size="sm" color="blue">
                   <IconUser size={16} />
                 </Avatar>

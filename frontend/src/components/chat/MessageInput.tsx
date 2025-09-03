@@ -71,6 +71,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
                             variant="gradient"
                             gradient={{ from: 'blue', to: 'cyan', deg: 45 }}
                             style={{ minWidth: '42px', minHeight: '42px' }}
+                            aria-label={disabled ? 'Sending message' : 'Send message'}
                         >
                             {disabled ? (
                                 <IconLoader size={18} className="animate-spin" />

@@ -9,7 +9,8 @@ import App from './App.tsx'
 // Mantine providers
 import { MantineProvider, createTheme } from '@mantine/core'
 import { Notifications } from '@mantine/notifications'
-import { ThemeProvider, useTheme } from './hooks/useTheme.tsx'
+import { ThemeProvider } from './providers/ThemeProvider';
+import { useTheme } from './hooks/useTheme';
 
 const theme = createTheme({
   fontFamily: 'Inter, system-ui, sans-serif',
@@ -89,7 +90,7 @@ const theme = createTheme({
   },
 })
 
-function AppWithTheme() {
+export function AppWithTheme() {
   const { colorScheme } = useTheme();
   
   return (

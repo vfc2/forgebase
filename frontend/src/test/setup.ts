@@ -1,6 +1,22 @@
 import '@testing-library/jest-dom';
 import { beforeEach, vi } from 'vitest';
 
+// Mock ResizeObserver for Mantine components
+Object.defineProperty(globalThis, 'ResizeObserver', {
+    value: vi.fn().mockImplementation(() => ({
+        observe: vi.fn(),
+        unobserve: vi.fn(),
+        disconnect: vi.fn(),
+    })),
+    writable: true,
+});
+
+// Mock scrollIntoView for MessageList component
+Object.defineProperty(Element.prototype, 'scrollIntoView', {
+    value: vi.fn(),
+    writable: true,
+});
+
 // Mock environment variables
 Object.defineProperty(import.meta, 'env', {
     value: {

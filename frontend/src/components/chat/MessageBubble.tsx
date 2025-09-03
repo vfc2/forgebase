@@ -6,16 +6,18 @@ import type { ChatMessage } from '../../types/api';
 interface MessageBubbleProps {
     message: ChatMessage;
     isStreaming?: boolean;
+    messageIndex?: number;
 }
 
 export const MessageBubble: React.FC<MessageBubbleProps> = ({
     message,
-    isStreaming = false
+    isStreaming = false,
+    messageIndex
 }) => {
     const isUser = message.role === 'user';
 
     return (
-        <Box mb="md">
+        <Box mb="md" data-testid={messageIndex !== undefined ? `message-bubble-${messageIndex}` : undefined}>
             <Group
                 align="flex-start"
                 gap="sm"

@@ -113,6 +113,7 @@ export const MessageList: React.FC<MessageListProps> = ({
                     <MessageBubble
                         key={message.id}
                         message={message}
+                        messageIndex={index}
                         isStreaming={isStreaming && index === messages.length - 1 && message.role === 'assistant'}
                     />
                 ))}

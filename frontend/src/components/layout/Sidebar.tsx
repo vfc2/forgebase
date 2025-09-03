@@ -63,6 +63,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 variant="subtle"
                 color="gray"
                 onClick={onClearHistory}
+                aria-label="Clear History"
               >
                 <IconTrash size={14} />
               </ActionIcon>
