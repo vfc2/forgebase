@@ -31,10 +31,13 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                 <Paper
                     p="sm"
                     radius="md"
-                    bg={isUser ? 'blue' : 'gray.0'}
+                    bg={isUser ? 'blue' : 'light-dark(#f8f9fa, var(--mantine-color-dark-6))'}
                     c={isUser ? 'white' : 'dark'}
                     maw="80%"
                     withBorder={!isUser}
+                    style={{
+                        borderColor: isUser ? undefined : 'light-dark(#e8eaed, var(--mantine-color-dark-5))'
+                    }}
                 >
                     <Text size="sm" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
                         {message.content}

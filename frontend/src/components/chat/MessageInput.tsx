@@ -36,7 +36,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
             shadow="sm"
             style={{ 
                 borderTop: '1px solid var(--mantine-color-gray-3)',
-                background: 'var(--mantine-color-gray-0)'
+                backgroundColor: 'light-dark(#f8f9fa, var(--mantine-color-dark-7))'
             }}
         >
             <Container size="lg">
@@ -55,7 +55,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
                             styles={{
                                 input: {
                                     border: '1px solid var(--mantine-color-gray-4)',
-                                    background: 'white',
+                                    backgroundColor: 'light-dark(#fcfcfc, var(--mantine-color-dark-6))',
                                     fontSize: '14px',
                                     '&:focus': {
                                         borderColor: 'var(--mantine-color-blue-5)',

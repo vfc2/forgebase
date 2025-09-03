@@ -28,16 +28,16 @@ const theme = createTheme({
       '#0c4a6e', // 900
     ],
     gray: [
-      '#fafafa', // 50
-      '#f5f5f5', // 100
-      '#e5e5e5', // 200
-      '#d4d4d4', // 300
-      '#a3a3a3', // 400
-      '#737373', // 500
-      '#525252', // 600
-      '#404040', // 700
-      '#262626', // 800
-      '#171717', // 900
+      '#fcfcfc', // 50 - very light warm grey instead of pure white
+      '#f8f9fa', // 100 - soft light grey
+      '#f1f3f4', // 200 - subtle grey
+      '#e8eaed', // 300 - gentle grey
+      '#dadce0', // 400 - medium light grey
+      '#9aa0a6', // 500 - balanced grey
+      '#5f6368', // 600 - medium grey
+      '#3c4043', // 700 - darker grey
+      '#202124', // 800 - dark grey
+      '#171717', // 900 - very dark
     ],
   },
   defaultRadius: 'md',
@@ -58,6 +58,12 @@ const theme = createTheme({
   headings: {
     fontFamily: 'Inter, system-ui, sans-serif',
     fontWeight: '600',
+  },
+  other: {
+    // Custom colors for light theme backgrounds
+    lightBackground: '#fcfcfc',
+    lightSurface: '#f8f9fa',
+    lightBorder: '#e8eaed',
   },
   components: {
     Button: {

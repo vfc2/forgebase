@@ -63,6 +63,19 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 collapsed: { mobile: !sidebarOpened }
             }}
             padding="0"
+            styles={{
+                main: {
+                    backgroundColor: 'light-dark(#fcfcfc, var(--mantine-color-dark-7))'
+                },
+                header: {
+                    backgroundColor: 'light-dark(#f8f9fa, var(--mantine-color-dark-7))',
+                    borderColor: 'light-dark(#e8eaed, var(--mantine-color-dark-5))'
+                },
+                navbar: {
+                    backgroundColor: 'light-dark(#f8f9fa, var(--mantine-color-dark-8))',
+                    borderColor: 'light-dark(#e8eaed, var(--mantine-color-dark-5))'
+                }
+            }}
         >
             <Header 
                 onSettingsClick={handleSettingsClick}

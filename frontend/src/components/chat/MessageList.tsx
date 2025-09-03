@@ -75,7 +75,11 @@ export const MessageList: React.FC<MessageListProps> = ({
                                     <Paper
                                         key={index}
                                         p="md"
-                                        style={{ cursor: 'pointer' }}
+                                        style={{ 
+                                            cursor: 'pointer',
+                                            backgroundColor: 'light-dark(#f8f9fa, var(--mantine-color-dark-6))',
+                                            borderColor: 'light-dark(#e8eaed, var(--mantine-color-dark-5))'
+                                        }}
                                         withBorder
                                         className="hover-card"
                                     >
