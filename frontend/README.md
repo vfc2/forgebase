@@ -23,7 +23,7 @@ A modern React + TypeScript frontend for the Forgebase conversational PRD genera
 
 ## Tech Stack
 
-- **Framework**: React 18 with TypeScript
+- **Framework**: React 19 with TypeScript
 - **Build Tool**: Vite
 - **Styling**: Tailwind CSS with Typography plugin
 - **State Management**: React Query (TanStack Query) for API state

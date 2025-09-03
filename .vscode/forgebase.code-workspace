@@ -30,7 +30,8 @@
             "ms-python.mypy-type-checker",
             "bradlc.vscode-tailwindcss",
             "ms-vscode.vscode-typescript-next",
-            "dbaeumer.vscode-eslint"
+            "dbaeumer.vscode-eslint",
+            "vitest.explorer"
         ]
     }
 }
