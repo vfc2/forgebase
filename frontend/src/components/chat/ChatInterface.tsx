@@ -55,12 +55,17 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ hasActiveProject }
                 </Container>
             )}
 
-            {/* Messages */}
-            <Box style={{ flex: 1 }}>
+            {/* Messages - scrollable area */}
+            <Box style={{ 
+                flex: 1, 
+                minHeight: 0,  // Critical for flex items to shrink
+                display: 'flex',
+                flexDirection: 'column'
+            }}>
                 <MessageList messages={messages} isStreaming={isStreaming} onExampleClick={sendMessage} />
             </Box>
 
-            {/* Input */}
+            {/* Input - fixed at bottom */}
             <MessageInput
                 onSendMessage={sendMessage}
                 disabled={isLoading || isStreaming}

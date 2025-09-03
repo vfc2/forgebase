@@ -45,7 +45,7 @@ export const MessageList: React.FC<MessageListProps> = ({
 
     if (messages.length === 0) {
         return (
-            <Box style={{ flex: 1, overflowY: 'auto' }} p="md">
+            <Box style={{ height: '100%', overflowY: 'auto' }} p="md">
                 <Container size="md" py="xl">
                     <Center>
                         <Stack align="center" gap="xl" maw={600}>
@@ -112,7 +112,7 @@ export const MessageList: React.FC<MessageListProps> = ({
     }
 
     return (
-        <Box style={{ flex: 1, overflowY: 'auto' }} p="md">
+        <Box style={{ height: '100%', overflowY: 'auto' }} p="md">
             <Container size="lg">
                 {messages.map((message, index) => (
                     <MessageBubble
