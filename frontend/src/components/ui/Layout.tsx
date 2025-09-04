@@ -3,6 +3,7 @@ import { AppShell } from '@mantine/core';
 import { Header } from '../layout/Header';
 import { Sidebar } from '../layout/Sidebar';
 import { ChatInterface } from '../chat/ChatInterface';
+import { ProjectStages } from '../project/ProjectStages';
 import { useProjects } from '../../hooks/useProjects';
 
 export const Layout: React.FC = () => {
@@ -80,7 +81,11 @@ export const Layout: React.FC = () => {
                     height: 'calc(100vh - 70px)'
                 }}
             >
-                <ChatInterface projectId={currentProjectId} />
+                {currentProjectId ? (
+                    <ProjectStages projectId={currentProjectId} />
+                ) : (
+                    <ChatInterface projectId={null} />
+                )}
             </AppShell.Main>
         </AppShell>
     );
