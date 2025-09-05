@@ -99,7 +99,8 @@ def create_app() -> FastAPI:
 
     # Mount static files (path mocked in tests)
     if os.path.exists(STATIC_DIR):
-        fastapi_app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+        fastapi_app.mount(
+            "/static", StaticFiles(directory=STATIC_DIR), name="static")
 
     @fastapi_app.get("/")
     async def index(request: Request):
@@ -249,4 +250,5 @@ if __name__ == "__main__":
 
     host = os.getenv("FORGEBASE_HOST", "0.0.0.0")
     port = int(os.getenv("FORGEBASE_PORT", "8000"))
-    uvicorn.run("forgebase.interfaces.web:app", host=host, port=port, reload=True)
+    uvicorn.run("forgebase.interfaces.web:app",
+                host=host, port=port, reload=True)

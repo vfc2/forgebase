@@ -38,9 +38,17 @@ The backend will be available at http://localhost:8000
 
 ### API Endpoints
 
+#### Chat
 - `GET /` - Web interface
-- `POST /api/chat/stream` - Chat endpoint
+- `POST /api/chat/stream` - Chat endpoint with streaming responses
 - `GET /health` - Health check
+
+#### Project Management
+- `POST /api/projects` - Create new project
+- `GET /api/projects` - List all projects (newest first)
+- `GET /api/projects/{id}` - Get project by ID
+- `PUT /api/projects/{id}` - Update project name
+- `DELETE /api/projects/{id}` - Delete project
 
 ### CLI Interface
 

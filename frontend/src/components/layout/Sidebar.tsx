@@ -25,11 +25,12 @@ import {
 import type { Project } from '../../types/api';
 
 interface SidebarProps {
-  onNewProject: (name: string) => void;
+  onNewProject: (name: string) => Promise<void>;
   projects?: Project[];
   onProjectSelect?: (projectId: string) => void;
-  onProjectDelete?: (projectId: string) => void;
+  onProjectDelete?: (projectId: string) => Promise<void>;
   currentProjectId?: string | null;
+  isLoading?: boolean;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -37,23 +38,40 @@ export const Sidebar: React.FC<SidebarProps> = ({
   projects = [],
   onProjectSelect,
   onProjectDelete,
-  currentProjectId
+  currentProjectId,
+  isLoading = false
 }) => {
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false);
   const [projectName, setProjectName] = useState('');
   const [deleteConfirmProjectId, setDeleteConfirmProjectId] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const handleCreateProject = () => {
+  const handleCreateProject = async () => {
     if (projectName.trim()) {
-      onNewProject(projectName);
-      setProjectName('');
-      setIsNewProjectModalOpen(false);
+      setIsCreating(true);
+      try {
+        await onNewProject(projectName);
+        setProjectName('');
+        setIsNewProjectModalOpen(false);
+      } catch (error) {
+        console.error('Failed to create project:', error);
+      } finally {
+        setIsCreating(false);
+      }
     }
   };
 
-  const handleDeleteProject = (projectId: string) => {
-    onProjectDelete?.(projectId);
-    setDeleteConfirmProjectId(null);
+  const handleDeleteProject = async (projectId: string) => {
+    setIsDeleting(true);
+    try {
+      await onProjectDelete?.(projectId);
+      setDeleteConfirmProjectId(null);
+    } catch (error) {
+      console.error('Failed to delete project:', error);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const confirmDelete = (projectId: string) => {
@@ -87,7 +105,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         <AppShell.Section grow component={ScrollArea}>
           <Stack gap="xs">
-            {projects.length === 0 ? (
+            {isLoading ? (
+              <Text size="sm" c="var(--mantine-color-text)" ta="center" py="lg">
+                Loading projects...
+              </Text>
+            ) : projects.length === 0 ? (
               <Text size="sm" c="var(--mantine-color-text)" ta="center" py="lg">
                 No projects yet
               </Text>
@@ -122,6 +144,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         variant="subtle"
                         color="gray"
                         aria-label={`Project options for ${project.name}`}
+                        disabled={isDeleting}
                       >
                         <IconDots size={16} />
                       </ActionIcon>
@@ -131,6 +154,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         color="red"
                         leftSection={<IconTrash style={{ width: rem(14), height: rem(14) }} />}
                         onClick={() => confirmDelete(project.id)}
+                        disabled={isDeleting}
                       >
                         Delete Project
                       </Menu.Item>
@@ -214,7 +238,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </Button>
             <Button
               onClick={handleCreateProject}
-              disabled={!projectName.trim()}
+              disabled={!projectName.trim() || isCreating}
+              loading={isCreating}
             >
               Create Project
             </Button>
@@ -243,6 +268,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <Button
               color="red"
               onClick={() => deleteConfirmProjectId && handleDeleteProject(deleteConfirmProjectId)}
+              loading={isDeleting}
+              disabled={isDeleting}
             >
               Delete
             </Button>

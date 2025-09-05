@@ -19,4 +19,13 @@ export interface Project {
     id: string;
     name: string;
     createdAt: Date;
+    updatedAt?: Date;
+}
+
+export interface ProjectCreateRequest {
+    name: string;
+}
+
+export interface ProjectUpdateRequest {
+    name: string;
 }

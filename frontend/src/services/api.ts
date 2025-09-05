@@ -1,4 +1,4 @@
-import type { ChatRequest, ApiError } from '../types/api';
+import type { ChatRequest, ApiError, Project, ProjectCreateRequest, ProjectUpdateRequest } from '../types/api';
 import { extractSseChunks, unescapeSseData } from '../utils/chat';
 
 class ApiService {
@@ -109,6 +109,57 @@ class ApiService {
             if (this.isDev) console.error('Streaming error:', apiError.detail);
             throw apiError;
         }
+    }
+
+    // Project API methods
+    async listProjects(): Promise<Project[]> {
+        const projects = await this.request<Project[]>('/api/projects');
+        // Convert date strings to Date objects
+        return projects.map(project => ({
+            ...project,
+            createdAt: new Date(project.createdAt),
+            updatedAt: project.updatedAt ? new Date(project.updatedAt) : undefined
+        }));
+    }
+
+    async createProject(request: ProjectCreateRequest): Promise<Project> {
+        const project = await this.request<Project>('/api/projects', {
+            method: 'POST',
+            body: JSON.stringify(request)
+        });
+        // Convert date strings to Date objects
+        return {
+            ...project,
+            createdAt: new Date(project.createdAt),
+            updatedAt: project.updatedAt ? new Date(project.updatedAt) : undefined
+        };
+    }
+
+    async getProject(id: string): Promise<Project> {
+        const project = await this.request<Project>(`/api/projects/${id}`);
+        // Convert date strings to Date objects
+        return {
+            ...project,
+            createdAt: new Date(project.createdAt),
+            updatedAt: project.updatedAt ? new Date(project.updatedAt) : undefined
+        };
+    }
+
+    async updateProject(id: string, request: ProjectUpdateRequest): Promise<Project> {
+        const project = await this.request<Project>(`/api/projects/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(request)
+        });
+        // Convert date strings to Date objects
+        return {
+            ...project,
+            createdAt: new Date(project.createdAt),
+            updatedAt: project.updatedAt ? new Date(project.updatedAt) : undefined
+        };
+    }
+
+    async deleteProject(id: string): Promise<void> {
+        await this.request<void>(`/api/projects/${id}`, { method: 'DELETE' });
     }
 }
 

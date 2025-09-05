@@ -1,147 +1,206 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import React from 'react';
 import { useProjects } from './useProjects';
+import { apiService } from '../services/api';
+import type { Project, ProjectCreateRequest } from '../types/api';
 
-// Mock crypto.randomUUID
-const mockUUID = vi.fn();
-Object.defineProperty(globalThis, 'crypto', {
-  value: {
-    randomUUID: mockUUID,
-  },
-  writable: true,
-});
+// Mock the API service
+vi.mock('../services/api', () => ({
+  apiService: {
+    listProjects: vi.fn(),
+    createProject: vi.fn(),
+    deleteProject: vi.fn(),
+  }
+}));
+
+const mockApiService = vi.mocked(apiService);
+
+// Test wrapper with QueryClient
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+      mutations: {
+        retry: false,
+      },
+    },
+  });
+
+  return ({ children }: { children: React.ReactNode }) =>
+    React.createElement(QueryClientProvider, { client: queryClient }, children);
+};
 
 describe('useProjects', () => {
+  const mockProject: Project = {
+    id: '123e4567-e89b-12d3-a456-426614174000',
+    name: 'Test Project',
+    createdAt: new Date('2023-01-01T00:00:00.000Z'),
+    updatedAt: new Date('2023-01-02T00:00:00.000Z')
+  };
+
   beforeEach(() => {
-    mockUUID.mockClear();
-    mockUUID.mockReturnValue('mock-uuid-123');
+    vi.clearAllMocks();
   });
 
-  it('initializes with empty projects array and no current project', () => {
-    const { result } = renderHook(() => useProjects());
+  it('initializes with no current project', () => {
+    mockApiService.listProjects.mockResolvedValue([]);
     
-    expect(result.current.projects).toEqual([]);
+    const { result } = renderHook(() => useProjects(), {
+      wrapper: createWrapper(),
+    });
+    
+    expect(result.current.currentProjectId).toBeNull();
+    expect(result.current.isLoading).toBe(true);
+  });
+
+  it('loads projects from API on mount', async () => {
+    mockApiService.listProjects.mockResolvedValue([mockProject]);
+    
+    const { result } = renderHook(() => useProjects(), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.projects).toEqual([mockProject]);
+    expect(mockApiService.listProjects).toHaveBeenCalledOnce();
+  });
+
+  it('creates a new project and sets it as current', async () => {
+    mockApiService.listProjects.mockResolvedValue([]);
+    mockApiService.createProject.mockResolvedValue(mockProject);
+    
+    const { result } = renderHook(() => useProjects(), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    await act(async () => {
+      await result.current.createProject('Test Project');
+    });
+
+    const expectedRequest: ProjectCreateRequest = { name: 'Test Project' };
+    expect(mockApiService.createProject).toHaveBeenCalledWith(expectedRequest);
+    expect(result.current.currentProjectId).toBe(mockProject.id);
+    expect(result.current.projects).toContain(mockProject);
+  });
+
+  it('trims whitespace from project names', async () => {
+    mockApiService.listProjects.mockResolvedValue([]);
+    mockApiService.createProject.mockResolvedValue(mockProject);
+    
+    const { result } = renderHook(() => useProjects(), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    await act(async () => {
+      await result.current.createProject('  Test Project  ');
+    });
+
+    const expectedRequest: ProjectCreateRequest = { name: 'Test Project' };
+    expect(mockApiService.createProject).toHaveBeenCalledWith(expectedRequest);
+  });
+
+  it('does not create project with empty name', async () => {
+    mockApiService.listProjects.mockResolvedValue([]);
+    
+    const { result } = renderHook(() => useProjects(), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    await act(async () => {
+      await result.current.createProject('   ');
+    });
+
+    expect(mockApiService.createProject).not.toHaveBeenCalled();
+  });
+
+  it('deletes a project and clears current selection if deleted project was current', async () => {
+    mockApiService.listProjects.mockResolvedValue([mockProject]);
+    mockApiService.deleteProject.mockResolvedValue();
+    
+    const { result } = renderHook(() => useProjects(), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    // Select the project first
+    act(() => {
+      result.current.selectProject(mockProject.id);
+    });
+
+    expect(result.current.currentProjectId).toBe(mockProject.id);
+
+    // Delete the project
+    await act(async () => {
+      await result.current.deleteProject(mockProject.id);
+    });
+
+    expect(mockApiService.deleteProject).toHaveBeenCalledWith(mockProject.id);
     expect(result.current.currentProjectId).toBeNull();
   });
 
-  it('creates a new project and sets it as current', () => {
-    const { result } = renderHook(() => useProjects());
+  it('deletes a project without affecting current selection if different project was current', async () => {
+    const anotherProject = { ...mockProject, id: 'another-id', name: 'Another Project' };
+    mockApiService.listProjects.mockResolvedValue([mockProject, anotherProject]);
+    mockApiService.deleteProject.mockResolvedValue();
     
-    act(() => {
-      result.current.createProject('Test Project');
+    const { result } = renderHook(() => useProjects(), {
+      wrapper: createWrapper(),
     });
 
-    expect(result.current.projects).toHaveLength(1);
-    expect(result.current.projects[0]).toEqual({
-      id: 'mock-uuid-123',
-      name: 'Test Project',
-      createdAt: expect.any(Date),
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
     });
-    expect(result.current.currentProjectId).toBe('mock-uuid-123');
+
+    // Select a different project
+    act(() => {
+      result.current.selectProject(anotherProject.id);
+    });
+
+    expect(result.current.currentProjectId).toBe(anotherProject.id);
+
+    // Delete the first project
+    await act(async () => {
+      await result.current.deleteProject(mockProject.id);
+    });
+
+    expect(mockApiService.deleteProject).toHaveBeenCalledWith(mockProject.id);
+    expect(result.current.currentProjectId).toBe(anotherProject.id);
   });
 
-  it('trims whitespace from project names', () => {
-    const { result } = renderHook(() => useProjects());
+  it('handles API errors gracefully', async () => {
+    mockApiService.listProjects.mockRejectedValue(new Error('API Error'));
     
-    act(() => {
-      result.current.createProject('  Test Project  ');
+    const { result } = renderHook(() => useProjects(), {
+      wrapper: createWrapper(),
     });
 
-    expect(result.current.projects[0].name).toBe('Test Project');
-  });
-
-  it('adds new projects to the beginning of the list', () => {
-    const { result } = renderHook(() => useProjects());
-    
-    mockUUID.mockReturnValueOnce('uuid-1');
-    act(() => {
-      result.current.createProject('Project 1');
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
     });
 
-    mockUUID.mockReturnValueOnce('uuid-2');
-    act(() => {
-      result.current.createProject('Project 2');
-    });
-
-    expect(result.current.projects).toHaveLength(2);
-    expect(result.current.projects[0].id).toBe('uuid-2');
-    expect(result.current.projects[1].id).toBe('uuid-1');
-  });
-
-  it('deletes a project', () => {
-    const { result } = renderHook(() => useProjects());
-    
-    mockUUID.mockReturnValueOnce('uuid-1');
-    act(() => {
-      result.current.createProject('Project 1');
-    });
-
-    mockUUID.mockReturnValueOnce('uuid-2');
-    act(() => {
-      result.current.createProject('Project 2');
-    });
-
-    act(() => {
-      result.current.deleteProject('uuid-1');
-    });
-
-    expect(result.current.projects).toHaveLength(1);
-    expect(result.current.projects[0].id).toBe('uuid-2');
-  });
-
-  it('clears current project when deleting the current project', () => {
-    const { result } = renderHook(() => useProjects());
-    
-    mockUUID.mockReturnValueOnce('uuid-1');
-    act(() => {
-      result.current.createProject('Project 1');
-    });
-
-    expect(result.current.currentProjectId).toBe('uuid-1');
-
-    act(() => {
-      result.current.deleteProject('uuid-1');
-    });
-
-    expect(result.current.currentProjectId).toBeNull();
-  });
-
-  it('keeps current project when deleting a different project', () => {
-    const { result } = renderHook(() => useProjects());
-    
-    mockUUID.mockReturnValueOnce('uuid-1');
-    act(() => {
-      result.current.createProject('Project 1');
-    });
-
-    mockUUID.mockReturnValueOnce('uuid-2');
-    act(() => {
-      result.current.createProject('Project 2');
-    });
-
-    act(() => {
-      result.current.selectProject('uuid-1');
-    });
-
-    act(() => {
-      result.current.deleteProject('uuid-2');
-    });
-
-    expect(result.current.currentProjectId).toBe('uuid-1');
-  });
-
-  it('selects a project', () => {
-    const { result } = renderHook(() => useProjects());
-    
-    mockUUID.mockReturnValueOnce('uuid-1');
-    act(() => {
-      result.current.createProject('Project 1');
-    });
-
-    act(() => {
-      result.current.selectProject('uuid-1');
-    });
-
-    expect(result.current.currentProjectId).toBe('uuid-1');
+    expect(result.current.error).toBeInstanceOf(Error);
+    expect(result.current.error?.message).toBe('API Error');
   });
 });

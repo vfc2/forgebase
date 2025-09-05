@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { apiService } from '../services/api';
+import type { Project, ProjectCreateRequest } from '../types/api';
 
 // Mock fetch globally
 const mockFetch = vi.fn();
@@ -95,6 +96,87 @@ describe('ApiService', () => {
                 const iterator = apiService.streamChat(mockRequest);
                 await iterator.next();
             }).rejects.toMatchObject({ detail: 'Server error', status: 500 });
+        });
+    });
+
+    describe('Project API', () => {
+        const mockProject: Project = {
+            id: '123e4567-e89b-12d3-a456-426614174000',
+            name: 'Test Project',
+            createdAt: new Date('2023-01-01T00:00:00.000Z'),
+            updatedAt: new Date('2023-01-02T00:00:00.000Z')
+        };
+
+        describe('listProjects', () => {
+            it('fetches and transforms project list', async () => {
+                const mockResponse = [{
+                    ...mockProject,
+                    createdAt: '2023-01-01T00:00:00.000Z',
+                    updatedAt: '2023-01-02T00:00:00.000Z'
+                }];
+
+                mockFetch.mockResolvedValueOnce({
+                    ok: true,
+                    json: async () => mockResponse,
+                });
+
+                const result = await apiService.listProjects();
+
+                expect(result).toEqual([mockProject]);
+                expect(mockFetch).toHaveBeenCalledWith(
+                    'http://localhost:8000/api/projects',
+                    {
+                        headers: { 'Content-Type': 'application/json' },
+                    }
+                );
+            });
+        });
+
+        describe('createProject', () => {
+            it('creates a project and transforms response', async () => {
+                const request: ProjectCreateRequest = { name: 'New Project' };
+                const mockResponse = {
+                    ...mockProject,
+                    createdAt: '2023-01-01T00:00:00.000Z',
+                    updatedAt: '2023-01-02T00:00:00.000Z'
+                };
+
+                mockFetch.mockResolvedValueOnce({
+                    ok: true,
+                    json: async () => mockResponse,
+                });
+
+                const result = await apiService.createProject(request);
+
+                expect(result).toEqual(mockProject);
+                expect(mockFetch).toHaveBeenCalledWith(
+                    'http://localhost:8000/api/projects',
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(request),
+                    }
+                );
+            });
+        });
+
+        describe('deleteProject', () => {
+            it('deletes a project', async () => {
+                mockFetch.mockResolvedValueOnce({
+                    ok: true,
+                    status: 204,
+                });
+
+                await apiService.deleteProject('123');
+
+                expect(mockFetch).toHaveBeenCalledWith(
+                    'http://localhost:8000/api/projects/123',
+                    {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                    }
+                );
+            });
         });
     });
 });

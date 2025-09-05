@@ -1,24 +1,14 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MantineProvider } from '@mantine/core';
 import { Layout } from './Layout';
+import { useProjects } from '../../hooks/useProjects';
 import type { ReactNode } from 'react';
 
 // Mock the hooks and components to isolate Layout testing
-const mockUseProjects = vi.fn(() => ({
-    projects: [
-        { id: 'project-1', name: 'Test Project 1' },
-        { id: 'project-2', name: 'Test Project 2' }
-    ],
-    currentProjectId: 'project-1',
-    createProject: vi.fn(),
-    deleteProject: vi.fn(),
-    selectProject: vi.fn(),
-}));
-
 vi.mock('../../hooks/useProjects', () => ({
-    useProjects: mockUseProjects,
+    useProjects: vi.fn(),
 }));
 
 vi.mock('../layout/Header', () => ({
@@ -82,6 +72,21 @@ const TestWrapper = ({ children }: { children: ReactNode }) => {
 };
 
 describe('Layout', () => {
+    beforeEach(() => {
+        // Reset mock to default behavior
+        vi.mocked(useProjects).mockReturnValue({
+            projects: [
+                { id: 'project-1', name: 'Test Project 1', createdAt: new Date() },
+                { id: 'project-2', name: 'Test Project 2', createdAt: new Date() }
+            ],
+            currentProjectId: 'project-1',
+            createProject: vi.fn(),
+            deleteProject: vi.fn(),
+            selectProject: vi.fn(),
+            isLoading: false,
+            error: null,
+        });
+    });
     it('renders all main layout components', () => {
         render(
             <TestWrapper>
@@ -91,8 +96,9 @@ describe('Layout', () => {
 
         expect(screen.getByTestId('header')).toBeInTheDocument();
         expect(screen.getByTestId('sidebar')).toBeInTheDocument();
-        expect(screen.getByTestId('chat-interface')).toBeInTheDocument();
+        // Since currentProjectId is 'project-1', it should render ProjectStages, not ChatInterface
         expect(screen.getByTestId('project-stages')).toBeInTheDocument();
+        expect(screen.queryByTestId('chat-interface')).not.toBeInTheDocument();
     });
 
     it('passes correct projectId to child components', () => {
@@ -102,8 +108,9 @@ describe('Layout', () => {
             </TestWrapper>
         );
 
-        expect(screen.getByText('Chat for project: project-1')).toBeInTheDocument();
+        // With currentProjectId 'project-1', should render ProjectStages, not ChatInterface
         expect(screen.getByText('Stages for project: project-1')).toBeInTheDocument();
+        expect(screen.queryByText('Chat for project: project-1')).not.toBeInTheDocument();
     });
 
     it('displays projects in sidebar', () => {
@@ -139,7 +146,35 @@ describe('Layout', () => {
         );
 
         // Should render within AppShell structure
-        const mainContent = screen.getByTestId('chat-interface').closest('[class*="AppShell"]');
-        expect(mainContent || screen.getByTestId('chat-interface')).toBeInTheDocument();
+        const appShell = screen.getByTestId('project-stages').closest('[class*="AppShell"]');
+        expect(appShell || screen.getByTestId('project-stages')).toBeInTheDocument();
+        
+        // Should have header and sidebar
+        expect(screen.getByTestId('header')).toBeInTheDocument();
+        expect(screen.getByTestId('sidebar')).toBeInTheDocument();
+    });
+
+    it('renders ChatInterface when no project is selected', () => {
+        // Override mock for this test
+        vi.mocked(useProjects).mockReturnValue({
+            projects: [],
+            currentProjectId: null,
+            createProject: vi.fn(),
+            deleteProject: vi.fn(),
+            selectProject: vi.fn(),
+            isLoading: false,
+            error: null,
+        });
+
+        render(
+            <TestWrapper>
+                <Layout />
+            </TestWrapper>
+        );
+
+        expect(screen.getByTestId('chat-interface')).toBeInTheDocument();
+        expect(screen.queryByTestId('project-stages')).not.toBeInTheDocument();
+        // Just check that the chat interface is rendered when no project is selected
+        expect(screen.getByTestId('chat-interface')).toHaveTextContent('Chat for project:');
     });
 });
