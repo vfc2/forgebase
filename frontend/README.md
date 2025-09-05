@@ -1,12 +1,3 @@
-# React + TypeScript + Vite
-
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
 # Forgebase Frontend
 
 A modern React + TypeScript frontend for the Forgebase conversational PRD generation system.
@@ -26,16 +17,16 @@ A modern React + TypeScript frontend for the Forgebase conversational PRD genera
 - **Framework**: React 19 with TypeScript
 - **Build Tool**: Vite
 - **Styling**: Mantine UI (theme + components)
-- **State Management**: React Query (TanStack Query) for API state
+- **State Management**: Custom hooks for local/business state
 - **Markdown**: react-markdown with syntax highlighting
-- **HTTP Client**: Axios + fetch API for streaming
+- **HTTP Client**: Native fetch (including streaming via ReadableStream)
 - **Testing**: Vitest + Testing Library + jsdom
 
 ## Development
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - npm or yarn
 
 ### Getting Started
@@ -59,10 +50,14 @@ npm run test:ui
 
 ### Environment Variables
 
-Create a `.env` file in the frontend directory:
+Create a `.env` file in the frontend directory (optional). If `VITE_API_URL` is absent the app falls back to `http://localhost:${VITE_API_PORT || 8000}`.
 
 ```bash
+# Explicit full URL (recommended for non-local setups)
 VITE_API_URL=http://localhost:8000
+
+# Or alternatively specify only a port (fallback path)
+VITE_API_PORT=8000
 ```
 
 ## Project Structure
@@ -96,12 +91,6 @@ Tests are written using Vitest and Testing Library:
 # Run all tests
 npm run test
 
-# Run tests in watch mode
-npm run test:watch
-
-# Run tests with coverage
-npm run test:coverage
-
 # Open test UI
 npm run test:ui
 ```
@@ -130,9 +119,9 @@ The build outputs to the `dist/` directory.
 
 ### State Management
 
-- **React Query**: API state, caching, background updates
-- **Custom hooks**: Business logic extraction (useChat)
-- **Local state**: UI state with useState/useReducer
+- **Custom hooks**: `useChat`, `useProjects`, `useTheme` encapsulate domain + UI logic.
+- **Local state**: Direct component concerns with `useState`.
+- React Query previously handled a single mutation; after simplifying network logic it is no longer required. Reintroduce only if server caching / background refetching becomes necessary.
 
 ### Styling
 
@@ -143,40 +132,46 @@ The build outputs to the `dist/` directory.
 
 ## Contributing
 
-1. Follow the existing code style
-2. Write tests for new features
-3. Update documentation
-4. Ensure all tests pass before submitting
+1. Follow existing code style & lint rules (`npm run lint`).
+2. Add or update tests for every new component/hook/utility.
+3. Update this README and internal instructions when behavior changes.
+4. Quality gate before PR:
+
+- `npm run lint`
+- `npm run test -- --run`
+- `npm run build`
+
+5. Keep changes small and focused; prefer pure utilities for shared logic (see `src/utils/chat.ts`).
 
 ## License
 
 Same as parent project (see root LICENSE file)
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Optional: add [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for additional React lint rules:
 
 ```js
 // eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+import reactX from "eslint-plugin-react-x";
+import reactDom from "eslint-plugin-react-dom";
 
 export default tseslint.config([
-  globalIgnores(['dist']),
+  globalIgnores(["dist"]),
   {
-    files: ['**/*.{ts,tsx}'],
+    files: ["**/*.{ts,tsx}"],
     extends: [
       // Other configs...
       // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
+      reactX.configs["recommended-typescript"],
       // Enable lint rules for React DOM
       reactDom.configs.recommended,
     ],
     languageOptions: {
       parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
         tsconfigRootDir: import.meta.dirname,
       },
       // other options...
     },
   },
-])
+]);
 ```
