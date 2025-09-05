@@ -25,29 +25,35 @@ Forgebase is a minimal MVP for conversational product requirement document (PRD)
 ### Core Components
 * `core/`: Domain logic with no I/O dependencies
   - [`ChatService`](src/forgebase/core/chat_service.py): Main orchestration service
+  - [`ProjectService`](src/forgebase/core/project_service.py): Project management service
   - [`AgentPort`](src/forgebase/core/ports.py): Protocol defining agent interface (`send_message_stream`, `reset`)
+  - [`ProjectRepositoryPort`](src/forgebase/core/ports.py): Protocol defining project persistence interface
+  - [`Project`](src/forgebase/core/entities.py): Project entity (ID, name, timestamps)
 
 ### Infrastructure Layer  
 * [`config.py`](src/forgebase/infrastructure/config.py): Environment-based agent selection (Azure OpenAI vs stub)
 * [`sk_agent.py`](src/forgebase/infrastructure/sk_agent.py): Semantic Kernel implementation with `ChatCompletionAgent`
 * [`stub_agent.py`](src/forgebase/infrastructure/stub_agent.py): Mock implementation for testing
+* [`project_repository.py`](src/forgebase/infrastructure/project_repository.py): In-memory project storage (extensible to database)
 
 ### Interface Layer
 * [`cli.py`](src/forgebase/interfaces/cli.py): Click-based CLI with streaming output
-* [`web.py`](src/forgebase/interfaces/web.py): FastAPI app with `/api/chat/stream` endpoint
+* [`web.py`](src/forgebase/interfaces/web.py): FastAPI app with chat streaming + project CRUD endpoints
+* [`project_models.py`](src/forgebase/interfaces/project_models.py): Pydantic models for project API
 * `frontend/`: React SPA that consumes the web API
 
 ## Key Patterns
 
 * **Async streaming**: All message flows use `AsyncIterator[str]` for real-time responses
-* **Port/adapter**: Core logic isolated through `AgentPort` protocol
+* **Port/adapter**: Core logic isolated through `AgentPort` and `ProjectRepositoryPort` protocols
+* **Repository pattern**: Project persistence abstracted for easy database integration later
 * **Configuration-driven**: Agent selection via environment variables (Azure OpenAI or stub)
-* **Transport-agnostic**: Same `ChatService` powers CLI and web interfaces
+* **Transport-agnostic**: Same services power CLI and web interfaces
 * **Frontend separation**: React app is independent, calls FastAPI endpoints
 
 ## Development Setup
 
-**Required tools:** Python 3.12, semantic-kernel, FastAPI for web interface
+**Required tools:** Python 3.12, semantic-kernel, FastAPI for web interface, pydantic for validation
 
 **Quality gates (must pass):**
 ```bash
@@ -103,3 +109,12 @@ python -m pytest tests
   - Data chunks: `data: <payload>\n\n` where `<payload>` has newlines escaped as `\\n`
   - Completion: `data: [DONE]\n\n`
 - Client unescapes `\\n` back to `\n` and concatenates chunks in order.
+
+## Project Management API
+
+- `POST /api/projects` - Create project
+- `GET /api/projects` - List projects (newest first)  
+- `GET /api/projects/{id}` - Get project by ID
+- `PUT /api/projects/{id}` - Update project name
+- `DELETE /api/projects/{id}` - Delete project
+- Uses Pydantic models for validation, repository pattern for persistence

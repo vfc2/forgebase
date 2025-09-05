@@ -2,15 +2,18 @@
 
 import os
 from contextlib import asynccontextmanager
+from uuid import UUID
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from forgebase.core import chat_service
-from forgebase.infrastructure import config, logging_config
+from forgebase.core import chat_service, project_service
+from forgebase.core.exceptions import ProjectNotFoundError, ProjectAlreadyExistsError
+from forgebase.infrastructure import config, logging_config, project_repository
+from forgebase.interfaces import project_models
 
 
 # Templates/static handling for both new and old directory structures
@@ -27,21 +30,27 @@ has_index = os.path.exists(os.path.join(TEMPLATE_DIR, "index.html"))
 
 # Global service instance that will be shared across requests
 _service: chat_service.ChatService | None = None
+_project_service: project_service.ProjectService | None = None
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     """Manage application lifespan - startup and shutdown logic."""
-    # Startup: Initialize the chat service
-    global _service  # pylint: disable=global-statement
+    # Startup: Initialize the chat service and project service
+    global _service, _project_service  # pylint: disable=global-statement
     logging_config.setup_logging(debug=False)
     agent = config.get_agent()
     _service = chat_service.ChatService(agent)
+
+    # Initialize project service with in-memory repository
+    project_repo = project_repository.InMemoryProjectRepository()
+    _project_service = project_service.ProjectService(project_repo)
 
     yield  # Application runs here
 
     # Shutdown: Clean up resources if needed
     _service = None
+    _project_service = None
 
 
 def get_cors_origins() -> list[str]:
@@ -148,6 +157,85 @@ def create_app() -> FastAPI:
     async def health_check():
         """Health check endpoint."""
         return {"status": "healthy", "service": "forgebase-web"}
+
+    # Project API endpoints
+    @fastapi_app.post("/api/projects", response_model=project_models.ProjectResponse)
+    async def create_project(request: project_models.ProjectCreateRequest):
+        """Create a new project."""
+        if not _project_service:
+            raise HTTPException(
+                status_code=500, detail="Project service not initialized"
+            )
+
+        try:
+            project = await _project_service.create_project(request.name)
+            return project_models.ProjectResponse.model_validate(project)
+        except ProjectAlreadyExistsError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    @fastapi_app.get(
+        "/api/projects", response_model=list[project_models.ProjectResponse]
+    )
+    async def list_projects():
+        """List all projects."""
+        if not _project_service:
+            raise HTTPException(
+                status_code=500, detail="Project service not initialized"
+            )
+
+        projects = await _project_service.list_projects()
+        return [
+            project_models.ProjectResponse.model_validate(project)
+            for project in projects
+        ]
+
+    @fastapi_app.get(
+        "/api/projects/{project_id}", response_model=project_models.ProjectResponse
+    )
+    async def get_project(project_id: UUID):
+        """Get a project by ID."""
+        if not _project_service:
+            raise HTTPException(
+                status_code=500, detail="Project service not initialized"
+            )
+
+        try:
+            project = await _project_service.get_project(project_id)
+            return project_models.ProjectResponse.model_validate(project)
+        except ProjectNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @fastapi_app.put(
+        "/api/projects/{project_id}", response_model=project_models.ProjectResponse
+    )
+    async def update_project(
+        project_id: UUID, request: project_models.ProjectUpdateRequest
+    ):
+        """Update a project."""
+        if not _project_service:
+            raise HTTPException(
+                status_code=500, detail="Project service not initialized"
+            )
+
+        try:
+            project = await _project_service.update_project(project_id, request.name)
+            return project_models.ProjectResponse.model_validate(project)
+        except ProjectNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @fastapi_app.delete("/api/projects/{project_id}")
+    async def delete_project(project_id: UUID):
+        """Delete a project."""
+        if not _project_service:
+            raise HTTPException(
+                status_code=500, detail="Project service not initialized"
+            )
+
+        deleted = await _project_service.delete_project(project_id)
+        if not deleted:
+            raise HTTPException(status_code=404, detail="Project not found")
+
+        return {"status": "deleted"}
 
     return fastapi_app
 

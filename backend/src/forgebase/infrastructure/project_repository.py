@@ -1,43 +1,24 @@
-"""Protocols for core components."""
+"""In-memory implementation of project repository."""
 
-from typing import AsyncIterator, Protocol, Optional, List
+from typing import Optional
 from uuid import UUID
 
 from forgebase.core.entities import Project
+from forgebase.core.exceptions import ProjectAlreadyExistsError, ProjectNotFoundError
 
 
-class AgentPort(Protocol):
+class InMemoryProjectRepository:
     """
-    Defines the interface for a chat agent.
+    In-memory implementation of ProjectRepositoryPort.
 
-    An agent is responsible for receiving user messages and generating
-    a streaming response.
+    This implementation stores projects in memory using a dictionary.
+    It's suitable for development and testing, but data will be lost
+    when the application restarts.
     """
 
-    def send_message_stream(self, user_text: str) -> AsyncIterator[str]:
-        """
-        Send a user message and stream the assistant's reply.
-
-        Args:
-            user_text: The raw user message to send.
-
-        Yields:
-            Chunks of the assistant's reply as they become available.
-        """
-        ...
-
-    async def reset(self) -> None:
-        """Reset any conversation/thread state for the agent."""
-        ...
-
-
-class ProjectRepositoryPort(Protocol):
-    """
-    Defines the interface for project persistence.
-
-    This protocol abstracts the storage mechanism for projects,
-    allowing different implementations (in-memory, database, etc.).
-    """
+    def __init__(self):
+        """Initialize the repository with an empty storage."""
+        self._projects: dict[UUID, Project] = {}
 
     async def create(self, project: Project) -> Project:
         """
@@ -52,7 +33,11 @@ class ProjectRepositoryPort(Protocol):
         Raises:
             ProjectAlreadyExistsError: If a project with the same ID exists.
         """
-        ...
+        if project.id in self._projects:
+            raise ProjectAlreadyExistsError(str(project.id))
+
+        self._projects[project.id] = project
+        return project
 
     async def get_by_id(self, project_id: UUID) -> Optional[Project]:
         """
@@ -64,16 +49,17 @@ class ProjectRepositoryPort(Protocol):
         Returns:
             The project if found, None otherwise.
         """
-        ...
+        return self._projects.get(project_id)
 
-    async def get_all(self) -> List[Project]:
+    async def get_all(self) -> list[Project]:
         """
         Retrieve all projects.
 
         Returns:
             List of all projects, ordered by creation date (newest first).
         """
-        ...
+        projects = list(self._projects.values())
+        return sorted(projects, key=lambda p: p.created_at, reverse=True)
 
     async def update(self, project: Project) -> Project:
         """
@@ -88,7 +74,11 @@ class ProjectRepositoryPort(Protocol):
         Raises:
             ProjectNotFoundError: If the project doesn't exist.
         """
-        ...
+        if project.id not in self._projects:
+            raise ProjectNotFoundError(str(project.id))
+
+        self._projects[project.id] = project
+        return project
 
     async def delete(self, project_id: UUID) -> bool:
         """
@@ -100,4 +90,7 @@ class ProjectRepositoryPort(Protocol):
         Returns:
             True if the project was deleted, False if it didn't exist.
         """
-        ...
+        if project_id in self._projects:
+            del self._projects[project_id]
+            return True
+        return False
