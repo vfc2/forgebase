@@ -3,7 +3,7 @@ import { apiService } from '../services/api';
 
 // Mock fetch globally
 const mockFetch = vi.fn();
-globalThis.fetch = mockFetch;
+globalThis.fetch = mockFetch as unknown as typeof fetch;
 
 describe('ApiService', () => {
     beforeEach(() => {
@@ -13,26 +13,32 @@ describe('ApiService', () => {
     describe('healthCheck', () => {
         it('makes a GET request to /health', async () => {
             const mockResponse = { status: 'ok' };
-
-            // Mock axios response
-            vi.spyOn(apiService['client'], 'get').mockResolvedValueOnce({
-                data: mockResponse,
+            mockFetch.mockResolvedValueOnce({
+                ok: true,
+                status: 200,
+                json: async () => mockResponse,
             });
-
             const result = await apiService.healthCheck();
-
             expect(result).toEqual(mockResponse);
-            expect(apiService['client'].get).toHaveBeenCalledWith('/health');
+            expect(mockFetch).toHaveBeenCalledWith(
+                'http://localhost:8000/health',
+                expect.objectContaining({ headers: expect.any(Object) })
+            );
         });
     });
 
     describe('resetChat', () => {
         it('makes a POST request to /api/chat/reset', async () => {
-            vi.spyOn(apiService['client'], 'post').mockResolvedValueOnce({});
-
+            mockFetch.mockResolvedValueOnce({
+                ok: true,
+                status: 204,
+                json: async () => ({}),
+            });
             await apiService.resetChat();
-
-            expect(apiService['client'].post).toHaveBeenCalledWith('/api/chat/reset');
+            expect(mockFetch).toHaveBeenCalledWith(
+                'http://localhost:8000/api/chat/reset',
+                expect.objectContaining({ method: 'POST' })
+            );
         });
     });
 
@@ -54,6 +60,7 @@ describe('ApiService', () => {
 
             mockFetch.mockResolvedValueOnce({
                 ok: true,
+                status: 200,
                 body: mockStream,
             });
 
@@ -85,11 +92,9 @@ describe('ApiService', () => {
             const mockRequest = { message: 'Hello' };
 
             await expect(async () => {
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                for await (const _chunk of apiService.streamChat(mockRequest)) {
-                    // Should not reach here
-                }
-            }).rejects.toThrow('Server error');
+                const iterator = apiService.streamChat(mockRequest);
+                await iterator.next();
+            }).rejects.toMatchObject({ detail: 'Server error', status: 500 });
         });
     });
 });

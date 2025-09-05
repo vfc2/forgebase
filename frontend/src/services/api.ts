@@ -1,81 +1,54 @@
-import axios from 'axios';
-import type { AxiosInstance } from 'axios';
 import type { ChatRequest, ApiError } from '../types/api';
 import { extractSseChunks, unescapeSseData } from '../utils/chat';
 
 class ApiService {
-    private client: AxiosInstance;
     private baseURL: string;
+    private isDev: boolean;
 
     constructor() {
-        // Use environment variable with a sensible default for development
         this.baseURL = import.meta.env.VITE_API_URL || `http://localhost:${import.meta.env.VITE_API_PORT || '8000'}`;
-
-        this.client = axios.create({
-            baseURL: this.baseURL,
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            timeout: 30000, // 30 seconds
-        });
-
-        this.setupInterceptors();
+        this.isDev = import.meta.env.MODE === 'development';
     }
-
-    private setupInterceptors() {
-        const isDev = import.meta.env.MODE === 'development';
-        // Request interceptor
-        this.client.interceptors.request.use(
-            (config) => {
-                if (isDev) console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
-                return config;
-            },
-            (error) => {
-                if (isDev) console.error('API Request Error:', error);
-                return Promise.reject(error);
-            }
-        );
-
-        // Response interceptor
-        this.client.interceptors.response.use(
-            (response) => {
-                if (isDev) console.log(`API Response: ${response.status} ${response.config.url}`);
-                return response;
-            },
-            (error) => {
-                if (isDev) console.error('API Response Error:', error.response?.data || error.message);
-                return Promise.reject(this.handleError(error));
-            }
-        );
-    }
-
-    private handleError(error: unknown): ApiError {
-        if (axios.isAxiosError(error)) {
-            if (error.response) {
-                return {
-                    detail: error.response.data?.detail || 'Server error occurred',
-                    status: error.response.status,
-                };
-            } else if (error.request) {
-                return {
-                    detail: 'Network error - unable to reach server',
-                    status: 0,
-                };
-            }
+    private async request<T = unknown>(path: string, options: RequestInit = {}): Promise<T> {
+        const url = `${this.baseURL}${path}`;
+        if (this.isDev) console.log(`API Request: ${options.method || 'GET'} ${url}`);
+        let response: Response;
+        try {
+            response = await fetch(url, {
+                headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+                ...options,
+            });
+    } catch {
+            const err: ApiError = { detail: 'Network error - unable to reach server', status: 0 };
+            throw err;
         }
-
-        return {
-            detail: error instanceof Error ? error.message : 'Unknown error occurred',
-        };
+        if (!response.ok) {
+            let detail = `HTTP ${response.status}`;
+            try {
+                const data = await response.json();
+                detail = data?.detail || detail;
+            } catch {/* ignore json parse */}
+            const err: ApiError = { detail, status: response.status };
+            if (this.isDev) console.error('API Response Error:', err.detail);
+            throw err;
+        }
+        if (response.status === 204) return undefined as T; // No Content
+        try {
+            const data = (await response.json()) as T;
+            if (this.isDev) console.log(`API Response: ${response.status} ${url}`);
+            return data;
+    } catch {
+            // If no body
+            return undefined as T;
+        }
     }
 
     async healthCheck(): Promise<{ status: string }> {
-        const response = await this.client.get('/health');
-        return response.data;
+        return this.request<{ status: string }>('/health');
     }
 
     async resetChat(): Promise<void> {
-        await this.client.post('/api/chat/reset');
+        await this.request<void>('/api/chat/reset', { method: 'POST', body: JSON.stringify({}) });
     }
 
     // Streaming chat using fetch API (since axios doesn't handle SSE well)
@@ -94,7 +67,8 @@ class ApiService {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
-                throw new Error(errorData.detail || `HTTP ${response.status}`);
+                const err: ApiError = { detail: errorData.detail || `HTTP ${response.status}`, status: response.status };
+                throw err;
             }
 
             const reader = response.body?.getReader();
@@ -129,8 +103,11 @@ class ApiService {
                 reader.releaseLock();
             }
         } catch (error) {
-            console.error('Streaming error:', error);
-            throw error;
+            const apiError: ApiError = error && typeof error === 'object' && 'detail' in (error as ApiError)
+                ? error as ApiError
+                : { detail: error instanceof Error ? error.message : 'Streaming error' };
+            if (this.isDev) console.error('Streaming error:', apiError.detail);
+            throw apiError;
         }
     }
 }

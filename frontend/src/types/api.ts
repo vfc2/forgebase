@@ -9,20 +9,11 @@ export interface ChatRequest {
     message: string;
 }
 
-export interface ChatResponse {
-    message: string;
-    timestamp: string;
-}
-
 export interface ApiError {
     detail: string;
     status?: number;
 }
 
-export interface StreamingResponse {
-    chunk: string;
-    done: boolean;
-}
 
 export interface Project {
     id: string;
