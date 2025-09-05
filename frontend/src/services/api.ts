@@ -119,7 +119,18 @@ class ApiService {
             ...project,
             createdAt: new Date(project.createdAt),
             updatedAt: project.updatedAt ? new Date(project.updatedAt) : undefined
-        }));
+        })).map(project => {
+            // Validate that the date conversion worked
+            if (isNaN(project.createdAt.getTime())) {
+                console.warn('Invalid createdAt date for project:', project.id, project.createdAt);
+                project.createdAt = new Date(); // Fallback to current date
+            }
+            if (project.updatedAt && isNaN(project.updatedAt.getTime())) {
+                console.warn('Invalid updatedAt date for project:', project.id, project.updatedAt);
+                project.updatedAt = undefined; // Fallback to undefined
+            }
+            return project;
+        });
     }
 
     async createProject(request: ProjectCreateRequest): Promise<Project> {
@@ -127,22 +138,46 @@ class ApiService {
             method: 'POST',
             body: JSON.stringify(request)
         });
-        // Convert date strings to Date objects
-        return {
+        // Convert date strings to Date objects with validation
+        const result = {
             ...project,
             createdAt: new Date(project.createdAt),
             updatedAt: project.updatedAt ? new Date(project.updatedAt) : undefined
         };
+        
+        // Validate date conversion
+        if (isNaN(result.createdAt.getTime())) {
+            console.warn('Invalid createdAt date for created project:', result.id, project.createdAt);
+            result.createdAt = new Date(); // Fallback to current date
+        }
+        if (result.updatedAt && isNaN(result.updatedAt.getTime())) {
+            console.warn('Invalid updatedAt date for created project:', result.id, project.updatedAt);
+            result.updatedAt = undefined;
+        }
+        
+        return result;
     }
 
     async getProject(id: string): Promise<Project> {
         const project = await this.request<Project>(`/api/projects/${id}`);
-        // Convert date strings to Date objects
-        return {
+        // Convert date strings to Date objects with validation
+        const result = {
             ...project,
             createdAt: new Date(project.createdAt),
             updatedAt: project.updatedAt ? new Date(project.updatedAt) : undefined
         };
+        
+        // Validate date conversion
+        if (isNaN(result.createdAt.getTime())) {
+            console.warn('Invalid createdAt date for project:', result.id, project.createdAt);
+            result.createdAt = new Date(); // Fallback to current date
+        }
+        if (result.updatedAt && isNaN(result.updatedAt.getTime())) {
+            console.warn('Invalid updatedAt date for project:', result.id, project.updatedAt);
+            result.updatedAt = undefined;
+        }
+        
+        return result;
     }
 
     async updateProject(id: string, request: ProjectUpdateRequest): Promise<Project> {
@@ -150,12 +185,24 @@ class ApiService {
             method: 'PUT',
             body: JSON.stringify(request)
         });
-        // Convert date strings to Date objects
-        return {
+        // Convert date strings to Date objects with validation
+        const result = {
             ...project,
             createdAt: new Date(project.createdAt),
             updatedAt: project.updatedAt ? new Date(project.updatedAt) : undefined
         };
+        
+        // Validate date conversion
+        if (isNaN(result.createdAt.getTime())) {
+            console.warn('Invalid createdAt date for updated project:', result.id, project.createdAt);
+            result.createdAt = new Date(); // Fallback to current date
+        }
+        if (result.updatedAt && isNaN(result.updatedAt.getTime())) {
+            console.warn('Invalid updatedAt date for updated project:', result.id, project.updatedAt);
+            result.updatedAt = undefined;
+        }
+        
+        return result;
     }
 
     async deleteProject(id: string): Promise<void> {

@@ -133,7 +133,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         {project.name}
                       </Text>
                       <Text size="xs" c="var(--mantine-color-text)">
-                        {project.createdAt.toLocaleDateString()}
+                        {project.createdAt instanceof Date && !isNaN(project.createdAt.getTime()) 
+                          ? project.createdAt.toLocaleDateString()
+                          : 'Date unavailable'
+                        }
                       </Text>
                     </div>
                   </Button>
