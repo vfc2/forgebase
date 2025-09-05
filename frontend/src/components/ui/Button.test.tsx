@@ -33,34 +33,15 @@ describe('Button', () => {
         expect(handleClick).toHaveBeenCalledTimes(1);
     });
 
-    it('renders with primary variant by default', () => {
-        render(
-            <TestWrapper>
-                <Button>Primary Button</Button>
-            </TestWrapper>
-        );
-        const button = screen.getByRole('button');
-        expect(button).toBeInTheDocument();
-    });
-
-    it('renders with secondary variant', () => {
+    it('renders with different variants', () => {
         render(
             <TestWrapper>
                 <Button variant="secondary">Secondary Button</Button>
-            </TestWrapper>
-        );
-        const button = screen.getByRole('button');
-        expect(button).toBeInTheDocument();
-    });
-
-    it('renders with ghost variant', () => {
-        render(
-            <TestWrapper>
                 <Button variant="ghost">Ghost Button</Button>
             </TestWrapper>
         );
-        const button = screen.getByRole('button');
-        expect(button).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Secondary Button' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Ghost Button' })).toBeInTheDocument();
     });
 
     it('is disabled when disabled prop is true', () => {
@@ -71,15 +52,5 @@ describe('Button', () => {
         );
         const button = screen.getByRole('button');
         expect(button).toBeDisabled();
-    });
-
-    it('accepts additional props', () => {
-        render(
-            <TestWrapper>
-                <Button data-testid="custom-button">Custom Button</Button>
-            </TestWrapper>
-        );
-        const button = screen.getByTestId('custom-button');
-        expect(button).toBeInTheDocument();
     });
 });

@@ -30,9 +30,6 @@ const createWrapper = () => {
 };
 
 describe('useChat', () => {
-  it('sanity executes test runner', () => {
-    expect(1).toBe(1);
-  });
   afterEach(() => {
     vi.clearAllMocks();
   });
