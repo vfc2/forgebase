@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiService } from '../services/api';
 import type { ChatMessage } from '../types/api';
+import { generateMessageId } from '../utils/chat';
 
 interface UseChatProps {
     projectId: string | null;
@@ -17,14 +18,12 @@ export const useChat = ({ projectId }: UseChatProps) => {
     // Get messages for current project
     const messages = projectId ? (projectChats[projectId] || []) : [];
 
-    const generateId = () => `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
     const addMessage = useCallback((message: Omit<ChatMessage, 'id'>) => {
         if (!projectId) return null;
         
         const newMessage: ChatMessage = {
             ...message,
-            id: generateId(),
+            id: generateMessageId(),
         };
         
         setProjectChats(prev => ({

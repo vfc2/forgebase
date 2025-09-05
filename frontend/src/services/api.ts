@@ -1,6 +1,7 @@
 import axios from 'axios';
 import type { AxiosInstance } from 'axios';
 import type { ChatRequest, ApiError } from '../types/api';
+import { extractSseChunks, unescapeSseData } from '../utils/chat';
 
 class ApiService {
     private client: AxiosInstance;
@@ -107,37 +108,21 @@ class ApiService {
             try {
                 while (true) {
                     const { done, value } = await reader.read();
-
                     if (done) break;
-
                     buffer += decoder.decode(value, { stream: true });
-
-                    // Process SSE format: look for complete "data: " lines
-                    const lines = buffer.split('\n');
-                    buffer = lines.pop() || ''; // Keep the last incomplete line in buffer
-
-                    for (const line of lines) {
-                        if (line.startsWith('data: ')) {
-                            const data = line.slice(6); // Remove 'data: ' prefix
-                            if (data && data !== '[DONE]') {
-                                // Unescape newlines that were escaped for SSE transport
-                                const unescapedData = data.replace(/\\n/g, '\n');
-                                yield unescapedData;
-                            }
-                        }
+                    const { chunks, remaining } = extractSseChunks(buffer);
+                    buffer = remaining; // keep incomplete line
+                    for (const chunk of chunks) {
+                        yield chunk;
                     }
                 }
 
-                // Process any remaining buffer content
-                if (buffer.trim()) {
-                    const trimmed = buffer.trim();
-                    if (trimmed.startsWith('data: ') && trimmed !== 'data: [DONE]') {
-                        const data = trimmed.slice(6);
-                        if (data) {
-                            // Unescape newlines that were escaped for SSE transport
-                            const unescapedData = data.replace(/\\n/g, '\n');
-                            yield unescapedData;
-                        }
+                // Flush any remaining complete data in buffer
+                const trimmed = buffer.trim();
+                if (trimmed.startsWith('data: ') && trimmed !== 'data: [DONE]') {
+                    const data = trimmed.slice(6);
+                    if (data) {
+                        yield unescapeSseData(data);
                     }
                 }
             } finally {
