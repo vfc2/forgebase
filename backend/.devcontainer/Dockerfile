@@ -8,9 +8,9 @@ COPY requirements.txt requirements.txt
 COPY requirements-dev.txt requirements-dev.txt
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \
+    && apt-get install -y --no-install-recommends git \
     && rm -rf /var/lib/apt/lists/* \
     && pip install --no-cache-dir -r requirements.txt
-
 # Optional for dev: uncomment if you want dev tools in the image
 # RUN pip install --no-cache-dir -r requirements-dev.txt
 
