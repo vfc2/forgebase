@@ -11,28 +11,30 @@ class Project:
     """
     Represents a project in the system.
 
-    A project is an entity with a name and creation timestamp,
+    A project is an entity with a name, PRD content, and creation timestamp,
     which can be used to organize conversations and work.
     """
 
     id: UUID
     name: str
+    prd: str
     created_at: datetime
     updated_at: Optional[datetime] = None
 
     @classmethod
-    def create(cls, name: str) -> "Project":
+    def create(cls, name: str, prd: str = "") -> "Project":
         """
         Create a new project with generated ID and current timestamp.
 
         Args:
             name: The name of the project.
+            prd: The PRD content for the project (defaults to empty string).
 
         Returns:
             A new Project instance.
         """
         now = datetime.now(UTC)
-        return cls(id=uuid4(), name=name, created_at=now, updated_at=None)
+        return cls(id=uuid4(), name=name, prd=prd, created_at=now, updated_at=None)
 
     def update_name(self, name: str) -> None:
         """
@@ -42,4 +44,14 @@ class Project:
             name: The new name for the project.
         """
         self.name = name
+        self.updated_at = datetime.now(UTC)
+
+    def update_prd(self, prd: str) -> None:
+        """
+        Update the project PRD content and set updated timestamp.
+
+        Args:
+            prd: The new PRD content for the project.
+        """
+        self.prd = prd
         self.updated_at = datetime.now(UTC)

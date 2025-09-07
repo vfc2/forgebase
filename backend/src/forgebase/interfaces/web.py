@@ -99,8 +99,7 @@ def create_app() -> FastAPI:
 
     # Mount static files (path mocked in tests)
     if os.path.exists(STATIC_DIR):
-        fastapi_app.mount(
-            "/static", StaticFiles(directory=STATIC_DIR), name="static")
+        fastapi_app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
     @fastapi_app.get("/")
     async def index(request: Request):
@@ -169,7 +168,7 @@ def create_app() -> FastAPI:
             )
 
         try:
-            project = await _project_service.create_project(request.name)
+            project = await _project_service.create_project(request.name, request.prd)
             return project_models.ProjectResponse.model_validate(project)
         except ProjectAlreadyExistsError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
@@ -189,6 +188,42 @@ def create_app() -> FastAPI:
             project_models.ProjectResponse.model_validate(project)
             for project in projects
         ]
+
+    @fastapi_app.put(
+        "/api/projects/{project_id}/name", response_model=project_models.ProjectResponse
+    )
+    async def update_project_name(
+        project_id: UUID, request: project_models.ProjectUpdateNameRequest
+    ):
+        """Update only a project's name."""
+        if not _project_service:
+            raise HTTPException(
+                status_code=500, detail="Project service not initialized"
+            )
+
+        try:
+            project = await _project_service.update_project(project_id, request.name)
+            return project_models.ProjectResponse.model_validate(project)
+        except ProjectNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @fastapi_app.put(
+        "/api/projects/{project_id}/prd", response_model=project_models.ProjectResponse
+    )
+    async def update_project_prd(
+        project_id: UUID, request: project_models.ProjectUpdatePRDRequest
+    ):
+        """Update only a project's PRD content."""
+        if not _project_service:
+            raise HTTPException(
+                status_code=500, detail="Project service not initialized"
+            )
+
+        try:
+            project = await _project_service.update_project_prd(project_id, request.prd)
+            return project_models.ProjectResponse.model_validate(project)
+        except ProjectNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     @fastapi_app.get(
         "/api/projects/{project_id}", response_model=project_models.ProjectResponse
@@ -219,7 +254,9 @@ def create_app() -> FastAPI:
             )
 
         try:
-            project = await _project_service.update_project(project_id, request.name)
+            project = await _project_service.update_project_full(
+                project_id, request.name, request.prd
+            )
             return project_models.ProjectResponse.model_validate(project)
         except ProjectNotFoundError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
@@ -250,5 +287,4 @@ if __name__ == "__main__":
 
     host = os.getenv("FORGEBASE_HOST", "0.0.0.0")
     port = int(os.getenv("FORGEBASE_PORT", "8000"))
-    uvicorn.run("forgebase.interfaces.web:app",
-                host=host, port=port, reload=True)
+    uvicorn.run("forgebase.interfaces.web:app", host=host, port=port, reload=True)

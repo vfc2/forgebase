@@ -25,17 +25,18 @@ class ProjectService:
         """
         self._repository = repository
 
-    async def create_project(self, name: str) -> Project:
+    async def create_project(self, name: str, prd: str = "") -> Project:
         """
         Create a new project.
 
         Args:
             name: The name of the project.
+            prd: The PRD content for the project (defaults to empty string).
 
         Returns:
             The created project.
         """
-        project = Project.create(name)
+        project = Project.create(name, prd)
         return await self._repository.create(project)
 
     async def get_project(self, project_id: UUID) -> Project:
@@ -93,6 +94,46 @@ class ProjectService:
         """
         project = await self.get_project(project_id)
         project.update_name(name)
+        return await self._repository.update(project)
+
+    async def update_project_prd(self, project_id: UUID, prd: str) -> Project:
+        """
+        Update a project's PRD content.
+
+        Args:
+            project_id: The project ID to update.
+            prd: The new PRD content for the project.
+
+        Returns:
+            The updated project.
+
+        Raises:
+            ProjectNotFoundError: If the project doesn't exist.
+        """
+        project = await self.get_project(project_id)
+        project.update_prd(prd)
+        return await self._repository.update(project)
+
+    async def update_project_full(
+        self, project_id: UUID, name: str, prd: str
+    ) -> Project:
+        """
+        Update a project's name and PRD content.
+
+        Args:
+            project_id: The project ID to update.
+            name: The new name for the project.
+            prd: The new PRD content for the project.
+
+        Returns:
+            The updated project.
+
+        Raises:
+            ProjectNotFoundError: If the project doesn't exist.
+        """
+        project = await self.get_project(project_id)
+        project.update_name(name)
+        project.update_prd(prd)
         return await self._repository.update(project)
 
     async def delete_project(self, project_id: UUID) -> bool:

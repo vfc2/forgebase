@@ -98,6 +98,22 @@ class TestInMemoryProjectRepository:
         assert retrieved.updated_at is not None
 
     @pytest.mark.asyncio
+    async def test_update_project_prd(self, repository):
+        """Test updating a project's PRD content."""
+        project = Project.create("Test Project", "Original PRD")
+        await repository.create(project)
+
+        project.update_prd("Updated PRD content")
+        result = await repository.update(project)
+
+        assert result == project
+
+        # Verify the update is persisted
+        retrieved = await repository.get_by_id(project.id)
+        assert retrieved.prd == "Updated PRD content"
+        assert retrieved.updated_at is not None
+
+    @pytest.mark.asyncio
     async def test_update_project_not_found(self, repository):
         """Test updating a non-existent project raises an exception."""
         project = Project.create("Test Project")

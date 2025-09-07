@@ -30,12 +30,28 @@ class TestProjectAPI:
         data = response.json()
 
         assert data["name"] == "Test Project"
+        assert data["prd"] == ""  # Default empty PRD
         assert "id" in data
         assert "created_at" in data
         assert data["updated_at"] is None
 
         # Validate UUID format
         UUID(data["id"])  # Should not raise an exception
+
+    def test_create_project_with_prd(self, client):
+        """Test creating a project with PRD content via API."""
+        response = client.post(
+            "/api/projects", json={"name": "Test Project", "prd": "Test PRD content"}
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+
+        assert data["name"] == "Test Project"
+        assert data["prd"] == "Test PRD content"
+        assert "id" in data
+        assert "created_at" in data
+        assert data["updated_at"] is None
 
     def test_create_project_invalid_name(self, client):
         """Test creating a project with invalid name."""
@@ -99,14 +115,17 @@ class TestProjectAPI:
         assert response.status_code == 422
 
     def test_update_project(self, client):
-        """Test updating a project."""
+        """Test updating a project with both name and PRD."""
         # Create a project
-        created = client.post("/api/projects", json={"name": "Original Name"}).json()
+        created = client.post(
+            "/api/projects", json={"name": "Original Name", "prd": "Original PRD"}
+        ).json()
         project_id = created["id"]
 
         # Update the project
         response = client.put(
-            f"/api/projects/{project_id}", json={"name": "Updated Name"}
+            f"/api/projects/{project_id}",
+            json={"name": "Updated Name", "prd": "Updated PRD"},
         )
 
         assert response.status_code == 200
@@ -114,6 +133,51 @@ class TestProjectAPI:
 
         assert data["id"] == project_id
         assert data["name"] == "Updated Name"
+        assert data["prd"] == "Updated PRD"
+        assert data["created_at"] == created["created_at"]
+        assert data["updated_at"] is not None
+
+    def test_update_project_name_only(self, client):
+        """Test updating only a project's name."""
+        # Create a project
+        created = client.post(
+            "/api/projects", json={"name": "Original Name", "prd": "Original PRD"}
+        ).json()
+        project_id = created["id"]
+
+        # Update only the name
+        response = client.put(
+            f"/api/projects/{project_id}/name", json={"name": "Updated Name"}
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+
+        assert data["id"] == project_id
+        assert data["name"] == "Updated Name"
+        assert data["prd"] == "Original PRD"  # PRD should remain unchanged
+        assert data["created_at"] == created["created_at"]
+        assert data["updated_at"] is not None
+
+    def test_update_project_prd_only(self, client):
+        """Test updating only a project's PRD content."""
+        # Create a project
+        created = client.post(
+            "/api/projects", json={"name": "Test Project", "prd": "Original PRD"}
+        ).json()
+        project_id = created["id"]
+
+        # Update only the PRD
+        response = client.put(
+            f"/api/projects/{project_id}/prd", json={"prd": "Updated PRD"}
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+
+        assert data["id"] == project_id
+        assert data["name"] == "Test Project"  # Name should remain unchanged
+        assert data["prd"] == "Updated PRD"
         assert data["created_at"] == created["created_at"]
         assert data["updated_at"] is not None
 
@@ -121,7 +185,8 @@ class TestProjectAPI:
         """Test updating a non-existent project."""
         non_existent_id = str(uuid4())
         response = client.put(
-            f"/api/projects/{non_existent_id}", json={"name": "New Name"}
+            f"/api/projects/{non_existent_id}",
+            json={"name": "New Name", "prd": "New PRD"},
         )
 
         assert response.status_code == 404
@@ -133,7 +198,9 @@ class TestProjectAPI:
         project_id = created["id"]
 
         # Try to update with empty name
-        response = client.put(f"/api/projects/{project_id}", json={"name": ""})
+        response = client.put(
+            f"/api/projects/{project_id}", json={"name": "", "prd": "Some PRD"}
+        )
 
         assert response.status_code == 422
 
@@ -163,27 +230,35 @@ class TestProjectAPI:
     def test_project_crud_workflow(self, client):
         """Test a complete CRUD workflow."""
         # Create
-        created = client.post("/api/projects", json={"name": "Workflow Test"}).json()
+        created = client.post(
+            "/api/projects", json={"name": "Workflow Test", "prd": "Test PRD"}
+        ).json()
         project_id = created["id"]
 
         # Read
         get_response = client.get(f"/api/projects/{project_id}")
         assert get_response.status_code == 200
-        assert get_response.json()["name"] == "Workflow Test"
+        data = get_response.json()
+        assert data["name"] == "Workflow Test"
+        assert data["prd"] == "Test PRD"
 
         # Update
         update_response = client.put(
-            f"/api/projects/{project_id}", json={"name": "Updated Workflow Test"}
+            f"/api/projects/{project_id}",
+            json={"name": "Updated Workflow Test", "prd": "Updated PRD"},
         )
         assert update_response.status_code == 200
-        assert update_response.json()["name"] == "Updated Workflow Test"
+        updated_data = update_response.json()
+        assert updated_data["name"] == "Updated Workflow Test"
+        assert updated_data["prd"] == "Updated PRD"
 
-        # List (should show updated name)
+        # List (should show updated name and PRD)
         list_response = client.get("/api/projects")
         assert list_response.status_code == 200
         projects = list_response.json()
         assert len(projects) == 1
         assert projects[0]["name"] == "Updated Workflow Test"
+        assert projects[0]["prd"] == "Updated PRD"
 
         # Delete
         delete_response = client.delete(f"/api/projects/{project_id}")

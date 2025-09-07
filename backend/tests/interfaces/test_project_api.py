@@ -15,7 +15,8 @@ class TestProjectAPI:
     def client(self):
         """Provide a test client for the FastAPI app."""
         app = create_app()
-        return TestClient(app)
+        with TestClient(app) as client:
+            yield client
 
     def test_create_project(self, client):
         """Test creating a project via API."""

@@ -29,6 +29,20 @@ class TestProjectService:
         project = await service.create_project(name)
 
         assert project.name == name
+        assert project.prd == ""  # Default empty PRD
+        assert project.id is not None
+        assert project.created_at is not None
+        assert project.updated_at is None
+
+    @pytest.mark.asyncio
+    async def test_create_project_with_prd(self, service):
+        """Test creating a project with PRD content."""
+        name = "Test Project"
+        prd = "Test PRD content"
+        project = await service.create_project(name, prd)
+
+        assert project.name == name
+        assert project.prd == prd
         assert project.id is not None
         assert project.created_at is not None
         assert project.updated_at is None
@@ -100,6 +114,45 @@ class TestProjectService:
 
         assert updated_project.id == project.id
         assert updated_project.name == new_name
+        assert updated_project.created_at == original_created_at
+        assert updated_project.updated_at is not None
+        assert updated_project.updated_at >= original_created_at
+
+    @pytest.mark.asyncio
+    async def test_update_project_prd(self, service):
+        """Test updating a project's PRD content."""
+        # Create a project
+        project = await service.create_project("Test Project", "Original PRD")
+        original_created_at = project.created_at
+
+        # Update it
+        new_prd = "Updated PRD content"
+        updated_project = await service.update_project_prd(project.id, new_prd)
+
+        assert updated_project.id == project.id
+        assert updated_project.name == project.name  # Name should remain unchanged
+        assert updated_project.prd == new_prd
+        assert updated_project.created_at == original_created_at
+        assert updated_project.updated_at is not None
+        assert updated_project.updated_at >= original_created_at
+
+    @pytest.mark.asyncio
+    async def test_update_project_full(self, service):
+        """Test updating both name and PRD of a project."""
+        # Create a project
+        project = await service.create_project("Original Name", "Original PRD")
+        original_created_at = project.created_at
+
+        # Update both name and PRD
+        new_name = "Updated Name"
+        new_prd = "Updated PRD content"
+        updated_project = await service.update_project_full(
+            project.id, new_name, new_prd
+        )
+
+        assert updated_project.id == project.id
+        assert updated_project.name == new_name
+        assert updated_project.prd == new_prd
         assert updated_project.created_at == original_created_at
         assert updated_project.updated_at is not None
         assert updated_project.updated_at >= original_created_at
