@@ -43,12 +43,15 @@ class ProjectResponse(BaseModel):
     id: UUID = Field(..., description="The project ID")
     name: str = Field(..., description="The project name")
     prd: str = Field(..., description="The PRD content for the project")
-    created_at: datetime = Field(..., description="When the project was created")
+    created_at: datetime = Field(
+        ..., alias="createdAt", description="When the project was created"
+    )
     updated_at: Optional[datetime] = Field(
-        None, description="When the project was last updated"
+        None, alias="updatedAt", description="When the project was last updated"
     )
 
     class Config:
         """Pydantic configuration."""
 
         from_attributes = True
+        populate_by_name = True

@@ -169,7 +169,11 @@ def create_app() -> FastAPI:
 
         try:
             project = await _project_service.create_project(request.name, request.prd)
-            return project_models.ProjectResponse.model_validate(project)
+            response = project_models.ProjectResponse.model_validate(project)
+            return JSONResponse(
+                content=response.model_dump(by_alias=True, mode="json"),
+                media_type="application/json",
+            )
         except ProjectAlreadyExistsError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
 
@@ -184,10 +188,14 @@ def create_app() -> FastAPI:
             )
 
         projects = await _project_service.list_projects()
-        return [
+        responses = [
             project_models.ProjectResponse.model_validate(project)
             for project in projects
         ]
+        return JSONResponse(
+            content=[r.model_dump(by_alias=True, mode="json") for r in responses],
+            media_type="application/json",
+        )
 
     @fastapi_app.put(
         "/api/projects/{project_id}/name", response_model=project_models.ProjectResponse
@@ -203,7 +211,11 @@ def create_app() -> FastAPI:
 
         try:
             project = await _project_service.update_project(project_id, request.name)
-            return project_models.ProjectResponse.model_validate(project)
+            response = project_models.ProjectResponse.model_validate(project)
+            return JSONResponse(
+                content=response.model_dump(by_alias=True, mode="json"),
+                media_type="application/json",
+            )
         except ProjectNotFoundError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 
@@ -221,7 +233,11 @@ def create_app() -> FastAPI:
 
         try:
             project = await _project_service.update_project_prd(project_id, request.prd)
-            return project_models.ProjectResponse.model_validate(project)
+            response = project_models.ProjectResponse.model_validate(project)
+            return JSONResponse(
+                content=response.model_dump(by_alias=True, mode="json"),
+                media_type="application/json",
+            )
         except ProjectNotFoundError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 
@@ -237,7 +253,11 @@ def create_app() -> FastAPI:
 
         try:
             project = await _project_service.get_project(project_id)
-            return project_models.ProjectResponse.model_validate(project)
+            response = project_models.ProjectResponse.model_validate(project)
+            return JSONResponse(
+                content=response.model_dump(by_alias=True, mode="json"),
+                media_type="application/json",
+            )
         except ProjectNotFoundError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 

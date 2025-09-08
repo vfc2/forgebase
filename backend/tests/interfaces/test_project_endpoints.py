@@ -32,8 +32,8 @@ class TestProjectAPI:
         assert data["name"] == "Test Project"
         assert data["prd"] == ""  # Default empty PRD
         assert "id" in data
-        assert "created_at" in data
-        assert data["updated_at"] is None
+        assert "createdAt" in data
+        assert data["updatedAt"] is None
 
         # Validate UUID format
         UUID(data["id"])  # Should not raise an exception
@@ -50,8 +50,8 @@ class TestProjectAPI:
         assert data["name"] == "Test Project"
         assert data["prd"] == "Test PRD content"
         assert "id" in data
-        assert "created_at" in data
-        assert data["updated_at"] is None
+        assert "createdAt" in data
+        assert data["updatedAt"] is None
 
     def test_create_project_invalid_name(self, client):
         """Test creating a project with invalid name."""
@@ -134,8 +134,8 @@ class TestProjectAPI:
         assert data["id"] == project_id
         assert data["name"] == "Updated Name"
         assert data["prd"] == "Updated PRD"
-        assert data["created_at"] == created["created_at"]
-        assert data["updated_at"] is not None
+        assert data["createdAt"] == created["createdAt"]
+        assert data["updatedAt"] is not None
 
     def test_update_project_name_only(self, client):
         """Test updating only a project's name."""
@@ -156,8 +156,8 @@ class TestProjectAPI:
         assert data["id"] == project_id
         assert data["name"] == "Updated Name"
         assert data["prd"] == "Original PRD"  # PRD should remain unchanged
-        assert data["created_at"] == created["created_at"]
-        assert data["updated_at"] is not None
+        assert data["createdAt"] == created["createdAt"]
+        assert data["updatedAt"] is not None
 
     def test_update_project_prd_only(self, client):
         """Test updating only a project's PRD content."""
@@ -178,8 +178,8 @@ class TestProjectAPI:
         assert data["id"] == project_id
         assert data["name"] == "Test Project"  # Name should remain unchanged
         assert data["prd"] == "Updated PRD"
-        assert data["created_at"] == created["created_at"]
-        assert data["updated_at"] is not None
+        assert data["createdAt"] == created["createdAt"]
+        assert data["updatedAt"] is not None
 
     def test_update_project_not_found(self, client):
         """Test updating a non-existent project."""
