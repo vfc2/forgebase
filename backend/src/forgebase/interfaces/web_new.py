@@ -163,7 +163,7 @@ def create_app() -> FastAPI:
             project = await _service.create_project(request.name, request.prd)
             response = project_models.ProjectResponse.model_validate(project)
             return JSONResponse(
-                content=response.model_dump(mode="json"),
+                content=response.model_dump(by_alias=True, mode="json"),
                 media_type="application/json",
             )
         except ProjectAlreadyExistsError as exc:
@@ -183,7 +183,7 @@ def create_app() -> FastAPI:
             for project in projects
         ]
         return JSONResponse(
-            content=[r.model_dump(mode="json") for r in responses],
+            content=[r.model_dump(by_alias=True, mode="json") for r in responses],
             media_type="application/json",
         )
 
@@ -199,7 +199,7 @@ def create_app() -> FastAPI:
             project = await _service.get_project(str(project_id))
             response = project_models.ProjectResponse.model_validate(project)
             return JSONResponse(
-                content=response.model_dump(mode="json"),
+                content=response.model_dump(by_alias=True, mode="json"),
                 media_type="application/json",
             )
         except ProjectNotFoundError as exc:
@@ -221,7 +221,7 @@ def create_app() -> FastAPI:
             )
             response = project_models.ProjectResponse.model_validate(project)
             return JSONResponse(
-                content=response.model_dump(mode="json"),
+                content=response.model_dump(by_alias=True, mode="json"),
                 media_type="application/json",
             )
         except ProjectNotFoundError as exc:

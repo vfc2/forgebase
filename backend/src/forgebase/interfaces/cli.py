@@ -4,7 +4,6 @@ import asyncio
 
 import click
 
-from forgebase.core import chat_service
 from forgebase.infrastructure import config, logging_config
 
 
@@ -18,8 +17,7 @@ def main() -> None:
 def chat(debug: bool) -> None:
     """Starts an interactive chat session."""
     logging_config.setup_logging(debug)
-    agent = config.get_agent()
-    service = chat_service.ChatService(agent)
+    service = config.get_service()
 
     async def run() -> None:
         """Runs the async chat loop."""
@@ -30,7 +28,7 @@ def chat(debug: bool) -> None:
                 if user_input.lower() == "/exit":
                     break
                 if user_input.lower() == "/reset":
-                    await service.reset()
+                    await service.reset_chat()
                     print("Conversation reset.")
                     continue
 
