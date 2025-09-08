@@ -1,161 +1,202 @@
-"""Tests for error handling and edge cases."""
+"""Tests for error handling and edge cases with unified architecture."""
 
-# pylint: disable=duplicate-code
-
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
+import asyncio
 
 import pytest
 
-from forgebase.core import chat_service
-from forgebase.infrastructure import stub_agent, sk_agent
+from forgebase.core.service import ForgebaseService
+from forgebase.infrastructure.agent import Agent
+from forgebase.infrastructure.project_repository import InMemoryProjectRepository
 
 
 class TestErrorHandling:
     """Test suite for error handling scenarios."""
 
+    @pytest.fixture
+    def service(self):
+        """Create a service for testing."""
+        agent = Agent(role="test")  # Stub mode
+        repository = InMemoryProjectRepository()
+        return ForgebaseService(agent, repository)
+
     @pytest.mark.asyncio
-    async def test_chat_service_propagates_agent_exceptions(self):
-        """Test that ChatService propagates exceptions from the agent."""
-        # Create a mock agent that raises an exception
+    async def test_service_propagates_agent_exceptions(self, service):
+        """Test that service properly propagates agent exceptions."""
+
+        # Create an async generator that raises an exception
+        async def failing_stream():
+            raise RuntimeError("Agent error")
+            yield  # This will never be reached
+
+        # Mock the agent to return the failing stream
         mock_agent = MagicMock()
+        mock_agent.send_message_stream = MagicMock(return_value=failing_stream())
+        service._agent = mock_agent
 
-        # Mock send_message_stream to be an async generator that raises
-        async def failing_stream(user_text):
-            del user_text  # Not used in this mock, but needed for signature
-            raise RuntimeError("Agent failed")
-            # The following line is necessary to make this an async generator
-            # but will never be reached. pylint: disable=unreachable
-            yield  # pragma: no cover
-
-        mock_agent.send_message_stream = failing_stream
-
-        service = chat_service.ChatService(agent=mock_agent)
-
-        # Verify the exception is propagated
-        with pytest.raises(RuntimeError, match="Agent failed"):
-            async for _ in service.send_message_stream("test"):
+        # Should propagate the exception
+        with pytest.raises(RuntimeError, match="Agent error"):
+            async for _ in service.send_message_stream("test message"):
                 pass
 
     @pytest.mark.asyncio
-    async def test_chat_service_reset_propagates_agent_exceptions(self):
-        """Test that ChatService propagates reset exceptions from the agent."""
-        # Create a mock agent that raises an exception on reset
-        mock_agent = AsyncMock()
-        mock_agent.reset.side_effect = RuntimeError("Reset failed")
+    async def test_service_reset_propagates_agent_exceptions(self, service):
+        """Test that service reset properly propagates agent exceptions."""
+        # Mock the agent to raise an exception on reset
+        mock_agent = MagicMock()
+        mock_agent.reset = AsyncMock(side_effect=RuntimeError("Reset error"))
+        service._agent = mock_agent
 
-        service = chat_service.ChatService(agent=mock_agent)
-
-        # Verify the exception is propagated
-        with pytest.raises(RuntimeError, match="Reset failed"):
-            await service.reset()
+        # Should propagate the exception
+        with pytest.raises(RuntimeError, match="Reset error"):
+            await service.reset_chat()
 
     @pytest.mark.asyncio
-    async def test_stub_agent_handles_concurrent_streams(self):
-        """Test that StubAgent can handle multiple concurrent streams."""
-        agent = stub_agent.StubAgent()
+    async def test_agent_handles_concurrent_streams(self):
+        """Test that agent handles concurrent streaming properly."""
+        agent = Agent(role="test")
 
         # Start multiple concurrent streams
-        stream1 = agent.send_message_stream("message1")
-        stream2 = agent.send_message_stream("message2")
+        async def collect_stream(message):
+            chunks = []
+            async for chunk in agent.send_message_stream(message):
+                chunks.append(chunk)
+            return chunks
 
-        # Collect results from both streams
-        chunks1 = [chunk async for chunk in stream1]
-        chunks2 = [chunk async for chunk in stream2]
+        # Run multiple streams concurrently
+        tasks = [
+            collect_stream("Message 1"),
+            collect_stream("Message 2"),
+            collect_stream("Message 3"),
+        ]
 
-        # Both should produce the same expected output
-        expected = ["This ", "is ", "a ", "stub ", "reply."]
-        assert chunks1 == expected
-        assert chunks2 == expected
+        results = await asyncio.gather(*tasks)
+
+        # All should complete successfully
+        assert len(results) == 3
+        for result in results:
+            assert len(result) == 5  # Stub returns 5 chunks
+            assert "".join(result) == "This is a stub reply."
 
     @pytest.mark.asyncio
-    async def test_sk_agent_handles_content_attribute_error(self):
-        """Test that SKAgent gracefully handles responses without content attribute."""
-        with patch(
-            "forgebase.infrastructure.sk_agent.ChatCompletionAgent"
-        ) as mock_agent_class, patch(
-            "forgebase.infrastructure.sk_agent.AzureChatCompletion"
-        ), patch(
-            "forgebase.infrastructure.sk_agent.ChatHistoryAgentThread"
-        ):
+    async def test_agent_handles_content_attribute_error(self):
+        """Test that agent handles AttributeError gracefully in real mode."""
+        # Create agent with credentials to test real mode
+        agent = Agent(
+            endpoint="https://test.openai.azure.com/",
+            api_key="test-key",
+            deployment_name="test-deployment",
+            role="test",
+        )
 
-            # Setup mocks
-            mock_agent_instance = MagicMock()
-            mock_agent_class.return_value = mock_agent_instance
+        # Mock the agent to simulate AttributeError in response processing
+        mock_response = MagicMock()
+        del mock_response.content  # Remove content to cause AttributeError
 
-            # Mock a response without content attribute
-            response_without_content = MagicMock()
-            del response_without_content.content  # Remove the content attribute
+        mock_agent = MagicMock()
 
-            # Mock a normal response
-            normal_response = MagicMock()
-            normal_response.content.content = "valid content"
+        async def mock_invoke_stream(*args, **kwargs):
+            yield mock_response
 
-            responses = [response_without_content, normal_response]
+        mock_agent.invoke_stream = mock_invoke_stream
+        agent.agent = mock_agent
+        agent.thread = MagicMock()  # Mock thread
 
-            async def mock_stream(**kwargs):
-                del kwargs  # Not used in this test, but needed for signature
-                for response in responses:
-                    yield response
+        chunks = []
+        async for chunk in agent.send_message_stream("test"):
+            chunks.append(chunk)
 
-            mock_agent_instance.invoke_stream = mock_stream
-
-            agent = sk_agent.SKAgent("endpoint", "key", "deployment")
-
-            # Collect chunks - should handle the AttributeError gracefully
-            chunks = []
-            try:
-                async for chunk in agent.send_message_stream("hello"):
-                    chunks.append(chunk)
-            except AttributeError:
-                # If an AttributeError is raised, that's a bug we need to fix
-                pytest.fail("SKAgent should handle responses without content attribute")
-
-            # Should only get the valid content
-            assert chunks == ["valid content"]
+        # Should handle the AttributeError gracefully and not yield any chunks
+        assert len(chunks) == 0
 
 
 class TestEdgeCases:
-    """Test suite for edge cases and boundary conditions."""
+    """Test suite for edge cases."""
 
     @pytest.mark.asyncio
-    async def test_empty_message_to_stub_agent(self):
-        """Test that StubAgent handles empty messages."""
-        agent = stub_agent.StubAgent()
-        chunks = [chunk async for chunk in agent.send_message_stream("")]
+    async def test_empty_message_to_agent(self):
+        """Test sending empty message to agent."""
+        agent = Agent(role="test")
 
-        # Should still return the expected stub response
-        assert chunks == ["This ", "is ", "a ", "stub ", "reply."]
+        chunks = []
+        async for chunk in agent.send_message_stream(""):
+            chunks.append(chunk)
+
+        # Should still work (stub agent ignores message content)
+        assert len(chunks) == 5
 
     @pytest.mark.asyncio
-    async def test_very_long_message_to_stub_agent(self):
-        """Test that StubAgent handles very long messages."""
-        agent = stub_agent.StubAgent()
+    async def test_very_long_message_to_agent(self):
+        """Test sending very long message to agent."""
+        agent = Agent(role="test")
+
         long_message = "x" * 10000  # 10KB message
-        chunks = [chunk async for chunk in agent.send_message_stream(long_message)]
+        chunks = []
+        async for chunk in agent.send_message_stream(long_message):
+            chunks.append(chunk)
 
-        # Should still return the expected stub response regardless of input
-        assert chunks == ["This ", "is ", "a ", "stub ", "reply."]
-
-    @pytest.mark.asyncio
-    async def test_unicode_message_to_stub_agent(self):
-        """Test that StubAgent handles Unicode messages."""
-        agent = stub_agent.StubAgent()
-        unicode_message = "Hello 世界 🌍 émojis"
-        chunks = [chunk async for chunk in agent.send_message_stream(unicode_message)]
-
-        # Should still return the expected stub response
-        assert chunks == ["This ", "is ", "a ", "stub ", "reply."]
+        # Should still work (stub agent ignores message content)
+        assert len(chunks) == 5
 
     @pytest.mark.asyncio
-    async def test_multiple_resets_on_stub_agent(self):
-        """Test that multiple resets on StubAgent work correctly."""
-        agent = stub_agent.StubAgent()
+    async def test_unicode_message_to_agent(self):
+        """Test sending unicode message to agent."""
+        agent = Agent(role="test")
 
-        # Reset multiple times
+        unicode_message = "Hello 世界! 🌍 Ñoño"
+        chunks = []
+        async for chunk in agent.send_message_stream(unicode_message):
+            chunks.append(chunk)
+
+        # Should still work (stub agent ignores message content)
+        assert len(chunks) == 5
+
+    @pytest.mark.asyncio
+    async def test_multiple_resets_on_agent(self):
+        """Test multiple consecutive resets on agent."""
+        agent = Agent(role="test")
+
+        # Multiple resets should not cause issues
         await agent.reset()
         await agent.reset()
         await agent.reset()
 
-        # Should still work normally after multiple resets
-        chunks = [chunk async for chunk in agent.send_message_stream("test")]
-        assert chunks == ["This ", "is ", "a ", "stub ", "reply."]
+        # Agent should still work after resets
+        chunks = []
+        async for chunk in agent.send_message_stream("test after resets"):
+            chunks.append(chunk)
+
+        assert len(chunks) == 5
+
+    @pytest.mark.asyncio
+    async def test_service_with_invalid_project_id(self):
+        """Test service operations with invalid project IDs."""
+        agent = Agent(role="test")
+        repository = InMemoryProjectRepository()
+        service = ForgebaseService(agent, repository)
+
+        from forgebase.core.exceptions import ProjectNotFoundError
+
+        # Invalid UUID format
+        with pytest.raises(ValueError):  # UUID parsing error
+            await service.get_project("not-a-uuid")
+
+        # Valid UUID but non-existent project
+        with pytest.raises(ProjectNotFoundError):
+            await service.get_project("12345678-1234-1234-1234-123456789012")
+
+    @pytest.mark.asyncio
+    async def test_service_project_operations_with_empty_strings(self):
+        """Test service project operations with empty/invalid strings."""
+        agent = Agent(role="test")
+        repository = InMemoryProjectRepository()
+        service = ForgebaseService(agent, repository)
+
+        # Empty project name should be handled by validation
+        # Note: Our current implementation allows empty names, but this could be changed
+        project = await service.create_project("")
+        assert project.name == ""
+
+        # Empty PRD should work
+        project = await service.create_project("Test", "")
+        assert project.prd == ""

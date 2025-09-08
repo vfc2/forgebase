@@ -3,7 +3,6 @@
 import pytest
 
 from forgebase.core.service import ForgebaseService
-from forgebase.core.entities import Project
 from forgebase.core.exceptions import ProjectNotFoundError
 from forgebase.infrastructure.agent import Agent
 from forgebase.infrastructure.project_repository import InMemoryProjectRepository

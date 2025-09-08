@@ -3,9 +3,10 @@
 # pylint: disable=duplicate-code
 
 import os
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
-from forgebase.infrastructure import config, stub_agent
+from forgebase.infrastructure import config
+from forgebase.infrastructure.agent import Agent
 
 
 class TestConfiguration:
@@ -13,9 +14,11 @@ class TestConfiguration:
 
     @patch.dict(os.environ, {}, clear=True)
     def test_get_agent_returns_stub_when_no_env_vars(self):
-        """Test that StubAgent is returned when environment variables are missing."""
+        """Test that Agent is returned in stub mode when environment variables are missing."""
         agent = config.get_agent()
-        assert isinstance(agent, stub_agent.StubAgent)
+        assert isinstance(agent, Agent)
+        # Agent should be in stub mode (no real agent configured)
+        assert agent.agent is None
 
     @patch.dict(
         os.environ,
@@ -27,9 +30,10 @@ class TestConfiguration:
         clear=True,
     )
     def test_get_agent_returns_stub_when_api_key_empty(self):
-        """Test that StubAgent is returned when API key is empty."""
+        """Test that Agent is returned in stub mode when API key is empty."""
         agent = config.get_agent()
-        assert isinstance(agent, stub_agent.StubAgent)
+        assert isinstance(agent, Agent)
+        assert agent.agent is None
 
     @patch.dict(
         os.environ,
@@ -41,9 +45,10 @@ class TestConfiguration:
         clear=True,
     )
     def test_get_agent_returns_stub_when_endpoint_empty(self):
-        """Test that StubAgent is returned when endpoint is empty."""
+        """Test that Agent is returned in stub mode when endpoint is empty."""
         agent = config.get_agent()
-        assert isinstance(agent, stub_agent.StubAgent)
+        assert isinstance(agent, Agent)
+        assert agent.agent is None
 
     @patch.dict(
         os.environ,
@@ -55,9 +60,10 @@ class TestConfiguration:
         clear=True,
     )
     def test_get_agent_returns_stub_when_deployment_empty(self):
-        """Test that StubAgent is returned when deployment name is empty."""
+        """Test that Agent is returned in stub mode when deployment name is empty."""
         agent = config.get_agent()
-        assert isinstance(agent, stub_agent.StubAgent)
+        assert isinstance(agent, Agent)
+        assert agent.agent is None
 
     @patch.dict(
         os.environ,
@@ -69,11 +75,11 @@ class TestConfiguration:
         clear=True,
     )
     def test_get_agent_returns_stub_when_deployment_missing(self):
-        """Test that StubAgent is returned when deployment name is missing."""
+        """Test that Agent is returned in stub mode when deployment name is missing."""
         agent = config.get_agent()
-        assert isinstance(agent, stub_agent.StubAgent)
+        assert isinstance(agent, Agent)
+        assert agent.agent is None
 
-    @patch("forgebase.infrastructure.config.sk_agent.SKAgent")
     @patch.dict(
         os.environ,
         {
@@ -83,19 +89,13 @@ class TestConfiguration:
         },
         clear=True,
     )
-    def test_get_agent_returns_sk_agent_when_all_env_vars_present(self, mock_sk_agent):
-        """Test that SKAgent is returned when all environment variables are present."""
-        mock_instance = MagicMock()
-        mock_sk_agent.return_value = mock_instance
-
+    def test_get_agent_returns_agent_with_credentials_when_all_env_vars_present(self):
+        """Test that Agent is returned with real agent when all environment variables are present."""
         agent = config.get_agent()
 
-        # Verify SKAgent was created with correct parameters
-        mock_sk_agent.assert_called_once_with(
-            endpoint="https://test.openai.azure.com/",
-            api_key="test-key",
-            deployment_name="test-deployment",
-        )
-
-        # Verify the returned agent is the mock instance
-        assert agent == mock_instance
+        # Should be Agent instance
+        assert isinstance(agent, Agent)
+        # Should have real agent configured (not None)
+        assert agent.agent is not None
+        # Should have the correct role
+        assert agent.role == "prd_facilitator"

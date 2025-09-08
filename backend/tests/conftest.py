@@ -2,10 +2,10 @@
 
 import pytest
 
-from forgebase.infrastructure import stub_agent
+from forgebase.infrastructure.agent import Agent
 
 
 @pytest.fixture
-def stub_agent_fixture() -> stub_agent.StubAgent:
-    """Provides a StubAgent instance."""
-    return stub_agent.StubAgent()
+def stub_agent_fixture() -> Agent:
+    """Provides an Agent instance in stub mode (no credentials)."""
+    return Agent(role="test")

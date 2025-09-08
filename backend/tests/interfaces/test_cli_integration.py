@@ -25,39 +25,39 @@ class TestCLIIntegration:
         assert "--debug" in result.output
 
     @patch("forgebase.interfaces.cli.asyncio.run")
-    @patch("forgebase.interfaces.cli.config.get_agent")
+    @patch("forgebase.interfaces.cli.config.get_service")
     @patch("forgebase.interfaces.cli.logging_config.setup_logging")
     def test_chat_command_setup(
-        self, mock_setup_logging, mock_get_agent, mock_asyncio_run
+        self, mock_setup_logging, mock_get_service, mock_asyncio_run
     ):
         """Test that chat command sets up dependencies correctly."""
         # Setup mocks
-        mock_agent = MagicMock()
-        mock_get_agent.return_value = mock_agent
+        mock_service = MagicMock()
+        mock_get_service.return_value = mock_service
 
         runner = CliRunner()
         runner.invoke(main, ["chat"])
 
         # Verify setup was called correctly
         mock_setup_logging.assert_called_once_with(False)  # debug=False by default
-        mock_get_agent.assert_called_once()
+        mock_get_service.assert_called_once()
         mock_asyncio_run.assert_called_once()
 
     @patch("forgebase.interfaces.cli.asyncio.run")
-    @patch("forgebase.interfaces.cli.config.get_agent")
+    @patch("forgebase.interfaces.cli.config.get_service")
     @patch("forgebase.interfaces.cli.logging_config.setup_logging")
     def test_chat_command_debug_flag(
-        self, mock_setup_logging, mock_get_agent, mock_asyncio_run
+        self, mock_setup_logging, mock_get_service, mock_asyncio_run
     ):
         """Test that chat command respects debug flag."""
         # Setup mocks
-        mock_agent = MagicMock()
-        mock_get_agent.return_value = mock_agent
+        mock_service = MagicMock()
+        mock_get_service.return_value = mock_service
 
         runner = CliRunner()
         runner.invoke(main, ["chat", "--debug"])
 
         # Verify debug logging was enabled
         mock_setup_logging.assert_called_once_with(True)  # debug=True
-        mock_get_agent.assert_called_once()
+        mock_get_service.assert_called_once()
         mock_asyncio_run.assert_called_once()
