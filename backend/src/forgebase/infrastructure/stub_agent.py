@@ -1,7 +1,7 @@
 """A deterministic stub agent for testing and development."""
 
 import asyncio
-from typing import AsyncIterator
+from typing import AsyncIterator, List
 
 
 class StubAgent:
@@ -31,3 +31,13 @@ class StubAgent:
     async def reset(self) -> None:
         """Does nothing, as the stub agent is stateless."""
         return
+
+    @property
+    def role(self) -> str:
+        """Get the agent's role identifier."""
+        return "stub"
+
+    @property
+    def available_tools(self) -> List[str]:
+        """Get list of available tool names for this agent."""
+        return []

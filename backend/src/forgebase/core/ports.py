@@ -11,7 +11,7 @@ class AgentPort(Protocol):
     Defines the interface for a chat agent.
 
     An agent is responsible for receiving user messages and generating
-    a streaming response.
+    a streaming response, potentially with access to tools and data repositories.
     """
 
     def send_message_stream(self, user_text: str) -> AsyncIterator[str]:
@@ -28,6 +28,16 @@ class AgentPort(Protocol):
 
     async def reset(self) -> None:
         """Reset any conversation/thread state for the agent."""
+        ...
+
+    @property
+    def role(self) -> str:
+        """Get the agent's role identifier."""
+        ...
+
+    @property
+    def available_tools(self) -> List[str]:
+        """Get list of available tool names for this agent."""
         ...
 
 
