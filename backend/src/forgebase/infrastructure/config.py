@@ -44,21 +44,3 @@ def _load_prd_instructions() -> str:
         return path.read_text(encoding="utf-8")
     except FileNotFoundError:
         return "You are a helpful PRD facilitator."
-
-
-# Legacy compatibility functions - deprecated, use get_service() instead
-def get_agent():
-    """Legacy function - use get_service() instead."""
-    # Create agent directly for backwards compatibility
-    return Agent(
-        endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-        api_key=os.getenv("AZURE_OPENAI_API_KEY"),
-        deployment_name=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"),
-        instructions=_load_prd_instructions(),
-        role="prd_facilitator",
-    )
-
-
-def get_multi_agent_service():
-    """Legacy function - use get_service() instead."""
-    return get_service()
