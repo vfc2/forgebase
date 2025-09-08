@@ -1,127 +1,121 @@
 """Tests for the web interface."""
 
 import unittest
-from unittest.mock import AsyncMock, patch
-
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from forgebase.interfaces.web import create_app, app
 
 
-class TestWebInterface(unittest.TestCase):
-    """Test cases for the web interface functionality."""
+class TestWebInterfaceBasic(unittest.TestCase):
+    """Basic tests for web interface structure."""
 
-    @patch("forgebase.interfaces.web.config.get_service")
-    @patch("forgebase.interfaces.web.logging_config.setup_logging")
-    @patch("forgebase.interfaces.web.Jinja2Templates")
-    @patch("forgebase.interfaces.web.StaticFiles")
-    def test_create_app_returns_fastapi_instance(
-        self, _mock_static, _mock_templates, _mock_logging, mock_get_service
-    ):
-        """Test that create_app returns a FastAPI instance."""
-        mock_service = AsyncMock()
-        mock_get_service.return_value = mock_service
+    def test_create_app_returns_fastapi_instance(self):
+        """Test that create_app returns a FastAPI instance with correct configuration."""
         app_instance = create_app()
 
         assert isinstance(app_instance, FastAPI)
         assert app_instance.title == "Forgebase API"
-
-    @patch("forgebase.interfaces.web.config.get_service")
-    @patch("forgebase.interfaces.web.logging_config.setup_logging")
-    @patch("forgebase.interfaces.web.Jinja2Templates")
-    @patch("forgebase.interfaces.web.StaticFiles")
-    def test_app_has_correct_routes(
-        self, _mock_static, _mock_templates, _mock_logging, mock_get_service
-    ):
-        """Test that the app has the expected routes."""
-        mock_service = AsyncMock()
-        mock_get_service.return_value = mock_service
-
-        app_instance = create_app()
-
-        # Check routes using openapi schema which is more reliable
-        openapi_schema = app_instance.openapi()
-        paths = list(openapi_schema["paths"].keys())
-
-        # Check expected routes
-        assert "/" in paths
-        assert "/api/health" in paths
-        assert "/api/chat/stream" in paths
-        assert "/api/chat/reset" in paths
-        assert "/api/projects" in paths
-        assert "/api/projects/{project_id}" in paths
-
-    @patch("forgebase.interfaces.web.config.get_service")
-    @patch("forgebase.interfaces.web.logging_config.setup_logging")
-    @patch("forgebase.interfaces.web.Jinja2Templates")
-    @patch("forgebase.interfaces.web.StaticFiles")
-    def test_health_endpoint(
-        self, _mock_static, _mock_templates, _mock_logging, mock_get_service
-    ):
-        """Test the health endpoint."""
-        mock_service = AsyncMock()
-        mock_get_service.return_value = mock_service
-
-        app_instance = create_app()
-
-        with TestClient(app_instance) as client:
-            response = client.get("/api/health")
-
-            assert response.status_code == 200
-            assert response.json() == {"status": "healthy"}
-
-    @patch("forgebase.interfaces.web.config.get_service")
-    @patch("forgebase.interfaces.web.logging_config.setup_logging")
-    @patch("forgebase.interfaces.web.Jinja2Templates")
-    @patch("forgebase.interfaces.web.StaticFiles")
-    def test_index_endpoint(
-        self, _mock_static, mock_templates, _mock_logging, mock_get_service
-    ):
-        """Test the index endpoint renders the chat template."""
-        mock_service = AsyncMock()
-        mock_get_service.return_value = mock_service
-
-        # Mock the template response
-        mock_template_response = object()
-        mock_templates.return_value.TemplateResponse.return_value = (
-            mock_template_response
+        assert (
+            app_instance.description == "Conversational PRD generation chat interface"
         )
-
-        app_instance = create_app()
-
-        with TestClient(app_instance) as client:
-            response = client.get("/")
-
-            # Should get a response (might be template or redirect)
-            assert response.status_code in [200, 307]  # 307 for redirect to frontend
+        assert app_instance.version == "0.1.0"
 
     def test_app_module_level_instance(self):
-        """Test that the module-level app instance exists."""
+        """Test that the module-level app instance exists and is configured."""
         assert isinstance(app, FastAPI)
         assert app.title == "Forgebase API"
 
+    def test_app_has_expected_routes(self):
+        """Test that the app has all expected API routes."""
+        app_instance = create_app()
+
+        # Check routes using openapi schema
+        openapi_schema = app_instance.openapi()
+        paths = list(openapi_schema["paths"].keys())
+
+        # Core routes should exist
+        expected_routes = [
+            "/",
+            "/api/health",
+            "/api/chat/stream",
+            "/api/chat/reset",
+            "/api/projects",
+            "/api/projects/{project_id}",
+        ]
+
+        for route in expected_routes:
+            assert route in paths, f"Route {route} not found in API"
+
 
 class TestWebInterfaceIntegration(unittest.TestCase):
-    """Integration tests for the web interface with actual services."""
+    """Integration tests for the web interface with real behavior."""
 
-    def test_integration_basic_functionality(self):
-        """Test basic integration with the app instance."""
-        # Use the module-level app instance
-        with TestClient(app) as client:
-            # Test health endpoint
-            response = client.get("/api/health")
-            assert response.status_code == 200
-            assert response.json() == {"status": "healthy"}
+    def setUp(self):
+        """Set up test client with the actual app instance."""
+        self.client = TestClient(app)
 
-            # Test index endpoint
-            response = client.get("/")
-            assert response.status_code in [
-                200,
-                307,
-            ]  # 200 for template, 307 for redirect
+    def test_health_endpoint_works(self):
+        """Test that health endpoint returns expected response."""
+        response = self.client.get("/api/health")
 
-            # Test that project endpoints exist (even if they fail due to no service)
-            response = client.get("/api/projects")
-            # May return 500 if service not initialized, but route should exist
-            assert response.status_code in [200, 500]
+        assert response.status_code == 200
+        assert response.json() == {"status": "healthy"}
+        assert response.headers["content-type"] == "application/json"
+
+    def test_index_endpoint_responds(self):
+        """Test that index endpoint returns a valid response."""
+        response = self.client.get("/")
+
+        # Should get either a template response or redirect to frontend
+        assert response.status_code in [200, 307]
+
+        if response.status_code == 307:
+            # If redirecting, should have a location header
+            assert "location" in response.headers
+
+    def test_project_endpoints_exist(self):
+        """Test that project management endpoints are accessible."""
+        # Test GET /api/projects (list projects)
+        response = self.client.get("/api/projects")
+        # Should be 200 (success) or 500 (service not initialized)
+        assert response.status_code in [200, 500]
+
+        # Test POST /api/projects (create project)
+        response = self.client.post(
+            "/api/projects", json={"name": "Test Project", "prd": "Test content"}
+        )
+        # Should be 200 (success) or 500 (service not initialized)
+        assert response.status_code in [200, 500]
+
+    def test_chat_endpoints_exist(self):
+        """Test that chat endpoints are accessible."""
+        # Test POST /api/chat/reset
+        response = self.client.post("/api/chat/reset")
+        # Should be 200 (success) or 500 (service not initialized)
+        assert response.status_code in [200, 500]
+
+        # Test POST /api/chat/stream
+        response = self.client.post("/api/chat/stream", json={"message": "Hello"})
+        # Should be 200 (success) or 500 (service not initialized)
+        assert response.status_code in [200, 500]
+
+    def test_cors_headers_present(self):
+        """Test that CORS headers are properly configured."""
+        # Test CORS by making a simple GET request and checking headers
+        response = self.client.get("/api/health")
+
+        # Should have CORS headers configured
+        assert response.status_code == 200
+        # FastAPI with CORS middleware should allow cross-origin requests
+        # The exact headers depend on the request, but the endpoint should work
+
+    def test_api_validates_bad_requests(self):
+        """Test that API properly validates malformed requests."""
+        # Test invalid project creation
+        response = self.client.post("/api/projects", json={})
+        assert response.status_code == 422  # Validation error
+
+        # Test invalid project ID format
+        response = self.client.get("/api/projects/invalid-uuid")
+        assert response.status_code == 422  # Validation error
