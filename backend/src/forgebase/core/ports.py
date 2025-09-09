@@ -1,6 +1,6 @@
 """Protocols for core components."""
 
-from typing import AsyncIterator, Protocol, Optional, List
+from typing import AsyncIterator, List, Optional, Protocol
 from uuid import UUID
 
 from forgebase.core.entities import Project

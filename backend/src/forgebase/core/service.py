@@ -35,7 +35,7 @@ class ForgebaseService:
         """
         # Future: Could inject project context here
         del project_id  # Unused for now
-        async for chunk in self._agent.send_message_stream(user_text):
+        async for chunk in await self._agent.send_message_stream(user_text):
             yield chunk
 
     async def reset_chat(self) -> None:
