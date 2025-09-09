@@ -2,6 +2,7 @@
 
 import os
 from contextlib import asynccontextmanager
+from typing import Any, cast
 from uuid import UUID
 
 from fastapi import FastAPI, Request, HTTPException
@@ -147,10 +148,10 @@ def create_app() -> FastAPI:
         return {"status": "reset"}
 
     # Project management endpoints
-    def _project_to_payload(project_models_module, project) -> dict:
-        """Serialize project with camelCase plus legacy snake_case for compatibility."""
+    def _project_to_payload(project_models_module, project) -> dict[str, Any]:
+        """Serialize project with camelCase field names."""
         resp = project_models_module.ProjectResponse.model_validate(project)
-        return resp.model_dump(mode="json", by_alias=True)
+        return cast(dict[str, Any], resp.model_dump(mode="json", by_alias=True))  # type: ignore[no-any-return]
 
     @fastapi_app.post("/api/projects", response_model=project_models.ProjectResponse)
     async def create_project(request: project_models.ProjectCreateRequest):

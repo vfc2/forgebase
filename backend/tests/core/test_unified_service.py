@@ -135,3 +135,51 @@ class TestForgebaseService:
         """Test deleting a non-existent project."""
         deleted = await service.delete_project(str(uuid4()))
         assert deleted is False
+
+    @pytest.mark.asyncio
+    async def test_create_project_empty_name(self, service):
+        """Test creating a project with empty name."""
+        with pytest.raises(ValueError, match="Project name cannot be empty"):
+            await service.create_project("")
+
+        with pytest.raises(ValueError, match="Project name cannot be empty"):
+            await service.create_project("   ")  # Whitespace only
+
+    @pytest.mark.asyncio
+    async def test_create_project_long_name(self, service):
+        """Test creating a project with too long name."""
+        long_name = "x" * 256  # Exceeds 255 character limit
+        with pytest.raises(ValueError, match="Project name too long"):
+            await service.create_project(long_name)
+
+    @pytest.mark.asyncio
+    async def test_update_project_empty_name(self, service):
+        """Test updating a project with empty name."""
+        project = await service.create_project("Original Name")
+
+        with pytest.raises(ValueError, match="Project name cannot be empty"):
+            await service.update_project(str(project.id), name="")
+
+        with pytest.raises(ValueError, match="Project name cannot be empty"):
+            await service.update_project(str(project.id), name="   ")
+
+    @pytest.mark.asyncio
+    async def test_update_project_long_name(self, service):
+        """Test updating a project with too long name."""
+        project = await service.create_project("Original Name")
+        long_name = "x" * 256  # Exceeds 255 character limit
+
+        with pytest.raises(ValueError, match="Project name too long"):
+            await service.update_project(str(project.id), name=long_name)
+
+    @pytest.mark.asyncio
+    async def test_invalid_project_id_format(self, service):
+        """Test operations with invalid project ID format."""
+        with pytest.raises(ProjectNotFoundError, match="Invalid project ID format"):
+            await service.get_project("not-a-uuid")
+
+        with pytest.raises(ProjectNotFoundError, match="Invalid project ID format"):
+            await service.update_project("not-a-uuid", name="New Name")
+
+        with pytest.raises(ProjectNotFoundError, match="Invalid project ID format"):
+            await service.delete_project("not-a-uuid")

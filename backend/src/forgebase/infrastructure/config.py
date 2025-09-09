@@ -32,7 +32,7 @@ def _create_agent() -> AgentPort:
     """Create an agent based on available configuration.
 
     Returns:
-        SemanticKernelAgent if Azure OpenAI config is available, else StubAgent
+        Agent if Azure OpenAI config is available, else StubAgent
     """
     endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
     api_key = os.getenv("AZURE_OPENAI_API_KEY")

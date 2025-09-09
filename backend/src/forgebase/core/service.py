@@ -1,5 +1,6 @@
 """Unified service for chat and project management."""
 
+from datetime import datetime, UTC
 from typing import AsyncIterator
 from uuid import UUID
 
@@ -21,20 +22,15 @@ class ForgebaseService:
         self._agent = agent
         self._project_repository = project_repository
 
-    async def send_message_stream(
-        self, user_text: str, project_id: str | None = None
-    ) -> AsyncIterator[str]:
+    async def send_message_stream(self, user_text: str) -> AsyncIterator[str]:
         """Send message and stream response.
 
         Args:
             user_text: User input message
-            project_id: Optional project context (for future use)
 
         Yields:
             String chunks of the agent's response
         """
-        # Future: Could inject project context here
-        del project_id  # Unused for now
         async for chunk in self._agent.send_message_stream(user_text):
             yield chunk
 
@@ -47,28 +43,42 @@ class ForgebaseService:
         """Create a new project.
 
         Args:
-            name: Project name
-            prd: Initial PRD content
+            name: The project name
+            prd: The initial PRD content (optional)
 
         Returns:
-            Created project
+            The created project
+
+        Raises:
+            ValueError: If project name is invalid
         """
-        project = Project.create(name, prd)
+        if not name or not name.strip():
+            raise ValueError("Project name cannot be empty")
+        if len(name) > 255:
+            raise ValueError("Project name too long (maximum 255 characters)")
+
+        project = Project.create(name=name, prd=prd)
         return await self._project_repository.create(project)
 
     async def get_project(self, project_id: str) -> Project:
-        """Get project by ID.
+        """Get a project by ID.
 
         Args:
-            project_id: Project UUID as string
+            project_id: The project ID as a string
 
         Returns:
-            Project if found
+            The project if found
 
         Raises:
-            ProjectNotFoundError: If project doesn't exist
+            ProjectNotFoundError: If project is not found or ID format is invalid
         """
-        project_uuid = UUID(project_id)
+        try:
+            project_uuid = UUID(project_id)
+        except ValueError as exc:
+            raise ProjectNotFoundError(
+                f"Invalid project ID format: {project_id}"
+            ) from exc
+
         project = await self._project_repository.get_by_id(project_uuid)
         if not project:
             raise ProjectNotFoundError(f"Project {project_id} not found")
@@ -85,43 +95,67 @@ class ForgebaseService:
     async def update_project(
         self, project_id: str, name: str | None = None, prd: str | None = None
     ) -> Project:
-        """Update project.
+        """Update a project.
 
         Args:
-            project_id: Project UUID as string
-            name: New name (optional)
-            prd: New PRD content (optional)
+            project_id: The project ID as a string
+            name: New name for the project (optional)
+            prd: New PRD content for the project (optional)
 
         Returns:
-            Updated project
+            The updated project
 
         Raises:
-            ProjectNotFoundError: If project doesn't exist
+            ProjectNotFoundError: If project is not found or ID format is invalid
+            ValueError: If project name is invalid
         """
-        project_uuid = UUID(project_id)
+        try:
+            project_uuid = UUID(project_id)
+        except ValueError as exc:
+            raise ProjectNotFoundError(
+                f"Invalid project ID format: {project_id}"
+            ) from exc
+
+        # Validate name if provided
+        if name is not None:
+            if not name or not name.strip():
+                raise ValueError("Project name cannot be empty")
+            if len(name) > 255:
+                raise ValueError("Project name too long (maximum 255 characters)")
 
         # Get existing project
         existing_project = await self._project_repository.get_by_id(project_uuid)
         if not existing_project:
             raise ProjectNotFoundError(f"Project {project_id} not found")
 
-        # Update fields
-        if name is not None:
-            existing_project.update_name(name)
-        if prd is not None:
-            existing_project.update_prd(prd)
+        # Create updated project
+        updated_project = Project(
+            id=existing_project.id,
+            name=name if name is not None else existing_project.name,
+            prd=prd if prd is not None else existing_project.prd,
+            created_at=existing_project.created_at,
+            updated_at=datetime.now(UTC),
+        )
 
-        # Save updated project
-        return await self._project_repository.update(existing_project)
+        return await self._project_repository.update(updated_project)
 
     async def delete_project(self, project_id: str) -> bool:
-        """Delete project.
+        """Delete a project by ID.
 
         Args:
-            project_id: Project UUID as string
+            project_id: The project ID as a string
 
         Returns:
-            True if deleted, False if not found
+            True if the project was deleted, False if it didn't exist
+
+        Raises:
+            ProjectNotFoundError: If ID format is invalid
         """
-        project_uuid = UUID(project_id)
+        try:
+            project_uuid = UUID(project_id)
+        except ValueError as exc:
+            raise ProjectNotFoundError(
+                f"Invalid project ID format: {project_id}"
+            ) from exc
+
         return await self._project_repository.delete(project_uuid)

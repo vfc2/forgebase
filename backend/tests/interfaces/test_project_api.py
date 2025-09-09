@@ -26,8 +26,8 @@ class TestProjectAPI:
         data = response.json()
         assert data["name"] == "Test Project"
         assert "id" in data
-        assert "created_at" in data
-        assert data["updated_at"] is None
+        assert "createdAt" in data
+        assert data["updatedAt"] is None
 
     def test_create_project_invalid_name(self, client):
         """Test creating a project with invalid name."""
@@ -103,8 +103,8 @@ class TestProjectAPI:
         data = response.json()
         assert data["id"] == created_project["id"]
         assert data["name"] == "Updated Name"
-        assert data["created_at"] == created_project["created_at"]
-        assert data["updated_at"] is not None
+        assert data["createdAt"] == created_project["createdAt"]
+        assert data["updatedAt"] is not None
 
     def test_update_project_not_found(self, client):
         """Test updating a non-existent project."""
@@ -172,7 +172,7 @@ class TestProjectAPI:
         assert update_response.status_code == 200
         updated_project = update_response.json()
         assert updated_project["name"] == "CRUD Test Updated"
-        assert updated_project["updated_at"] is not None
+        assert updated_project["updatedAt"] is not None
 
         # Delete
         delete_response = client.delete(f"/api/projects/{project['id']}")
