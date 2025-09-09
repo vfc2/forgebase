@@ -1,4 +1,4 @@
-"""Agent implementation using Semantic Kernel and Azure OpenAI."""
+"""Semantic Kernel agent implementation."""
 
 from typing import AsyncIterator, List
 
@@ -11,8 +11,8 @@ from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion
 from forgebase.core.ports import AgentPort
 
 
-class Agent(AgentPort):
-    """Main agent implementation using Semantic Kernel and Azure OpenAI."""
+class SemanticKernelAgent(AgentPort):
+    """Semantic Kernel-based agent implementation using Azure OpenAI."""
 
     def __init__(
         self,
@@ -23,7 +23,7 @@ class Agent(AgentPort):
         instructions: str = "You are a helpful assistant.",
         role: str = "assistant",
     ) -> None:
-        """Initialize the agent.
+        """Initialize the Semantic Kernel agent.
 
         Args:
             endpoint: Azure OpenAI endpoint URL

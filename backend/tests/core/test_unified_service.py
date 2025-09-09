@@ -5,7 +5,7 @@ import pytest
 
 from forgebase.core.service import ForgebaseService
 from forgebase.core.exceptions import ProjectNotFoundError
-from forgebase.infrastructure.agent import Agent
+from forgebase.infrastructure.stub_agent import StubAgent
 from forgebase.infrastructure.project_repository import InMemoryProjectRepository
 
 
@@ -15,7 +15,7 @@ class TestForgebaseService:
     @pytest.fixture
     def service(self):
         """Create a service for testing."""
-        agent = Agent(role="test_agent")  # Will be stub agent without credentials
+        agent = StubAgent(role="test_agent")  # Use StubAgent for testing
         repository = InMemoryProjectRepository()
         return ForgebaseService(agent, repository)
 
@@ -27,8 +27,11 @@ class TestForgebaseService:
         async for chunk in service.send_message_stream(message):
             chunks.append(chunk)
 
-        assert len(chunks) == 5  # Stub agent returns 5 chunks
-        assert "".join(chunks) == "This is a stub reply."
+        # Stub agent should return some response chunks
+        assert len(chunks) > 0
+        response = "".join(chunks)
+        assert len(response) > 0
+        assert "Hello!" in response  # StubAgent responds to greetings
 
     @pytest.mark.asyncio
     async def test_reset_chat(self, service):
