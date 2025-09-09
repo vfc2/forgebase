@@ -14,7 +14,7 @@ class AgentPort(Protocol):
     a streaming response, potentially with access to tools and data repositories.
     """
 
-    async def send_message_stream(self, user_text: str) -> AsyncIterator[str]:
+    def send_message_stream(self, user_text: str) -> AsyncIterator[str]:
         """
         Send a user message and stream the assistant's reply.
 
