@@ -1,5 +1,6 @@
 """Tests for the unified service layer."""
 
+from uuid import uuid4
 import pytest
 
 from forgebase.core.service import ForgebaseService
@@ -59,8 +60,6 @@ class TestForgebaseService:
     @pytest.mark.asyncio
     async def test_get_project_not_found(self, service):
         """Test getting a non-existent project."""
-        from uuid import uuid4
-
         with pytest.raises(ProjectNotFoundError):
             await service.get_project(str(uuid4()))
 
@@ -111,8 +110,6 @@ class TestForgebaseService:
     @pytest.mark.asyncio
     async def test_update_project_not_found(self, service):
         """Test updating a non-existent project."""
-        from uuid import uuid4
-
         with pytest.raises(ProjectNotFoundError):
             await service.update_project(str(uuid4()), name="New Name")
 
@@ -133,7 +130,5 @@ class TestForgebaseService:
     @pytest.mark.asyncio
     async def test_delete_project_not_found(self, service):
         """Test deleting a non-existent project."""
-        from uuid import uuid4
-
         deleted = await service.delete_project(str(uuid4()))
         assert deleted is False

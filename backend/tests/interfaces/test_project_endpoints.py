@@ -1,11 +1,14 @@
 """Tests for project API endpoints."""
 
+import sys
 from uuid import uuid4, UUID
 import pytest
 
 from fastapi.testclient import TestClient
 
 from forgebase.interfaces.web import create_app
+
+sys.path.insert(0, "/workspaces/forgebase/backend/src")
 
 
 class TestProjectAPI:
@@ -14,10 +17,6 @@ class TestProjectAPI:
     @pytest.fixture
     def client(self):
         """Create a test client for the FastAPI app."""
-        import sys
-
-        sys.path.insert(0, "/workspaces/forgebase/backend/src")
-
         app = create_app()
         with TestClient(app) as client:
             yield client

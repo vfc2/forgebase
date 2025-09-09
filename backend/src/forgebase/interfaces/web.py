@@ -236,8 +236,7 @@ def create_app() -> FastAPI:
         deleted = await _service.delete_project(str(project_id))
         if deleted:
             return {"status": "deleted"}
-        else:
-            raise HTTPException(status_code=404, detail="Project not found")
+        raise HTTPException(status_code=404, detail="Project not found")
 
     return fastapi_app
 

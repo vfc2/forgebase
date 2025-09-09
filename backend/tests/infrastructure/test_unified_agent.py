@@ -14,7 +14,7 @@ class TestUnifiedAgent:
 
         assert agent.role == "test_agent"
         assert agent.agent is None  # Should be None for stub mode
-        assert agent.available_tools == []
+        assert not agent.available_tools
 
     def test_agent_initialization_with_credentials(self):
         """Test agent initialization with credentials."""

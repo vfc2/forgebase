@@ -14,8 +14,9 @@ from forgebase.core.ports import AgentPort
 class Agent(AgentPort):
     """Simple, unified agent implementation."""
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
+        *,
         endpoint: Optional[str] = None,
         api_key: Optional[str] = None,
         deployment_name: Optional[str] = None,
@@ -34,7 +35,7 @@ class Agent(AgentPort):
         self._role = role
 
         if endpoint and api_key and deployment_name:
-            self.agent = ChatCompletionAgent(
+            self.agent: Optional[ChatCompletionAgent] = ChatCompletionAgent(
                 service=AzureChatCompletion(
                     deployment_name=deployment_name,
                     endpoint=endpoint,
@@ -47,9 +48,11 @@ class Agent(AgentPort):
             # Fallback to stub for development
             self.agent = None
 
-        self.thread: ChatHistoryAgentThread | None = None
+        self.thread: Optional[ChatHistoryAgentThread] = None
 
-    async def send_message_stream(self, user_text: str) -> AsyncIterator[str]:
+    async def send_message_stream(
+        self, user_text: str
+    ) -> AsyncIterator[str]:  # pylint: disable=invalid-overridden-method
         """Send message and stream response.
 
         Args:

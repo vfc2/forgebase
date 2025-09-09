@@ -1,6 +1,7 @@
 """Simplified configuration."""
 
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
 from forgebase.core.service import ForgebaseService
@@ -38,8 +39,6 @@ def _load_prd_instructions() -> str:
         Instructions text for the PRD facilitator agent
     """
     try:
-        from pathlib import Path
-
         path = Path(__file__).parent.parent / "prompts" / "prd.system.md"
         return path.read_text(encoding="utf-8")
     except FileNotFoundError:

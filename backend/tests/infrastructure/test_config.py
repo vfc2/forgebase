@@ -123,7 +123,7 @@ class TestConfiguration:
     def test_get_service_returns_service_with_real_agent_when_all_env_vars_present(
         self,
     ):
-        """Test that service with real agent is returned when all environment variables are present."""
+        """Test service with real agent when all environment variables present."""
         service = config.get_service()
 
         # Should be ForgebaseService instance
