@@ -12,6 +12,7 @@ services:
       retries: 20
     environment:
       - PYTHONPATH=/app/src
+      - WATCHFILES_FORCE_POLLING=true
     volumes:
       - ./backend:/app
     working_dir: /app

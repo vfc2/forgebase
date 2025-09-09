@@ -16,14 +16,8 @@ from forgebase.infrastructure import config, logging_config
 from forgebase.interfaces import project_models
 
 
-# Templates/static handling for both new and old directory structures
-TEMPLATE_DIR = "frontend"
-STATIC_DIR = "frontend/public"
-
-# Check if we're in the new backend-only structure
-if not os.path.exists("frontend") and os.path.exists("../frontend"):
-    TEMPLATE_DIR = "../frontend"
-    STATIC_DIR = "../frontend/public"
+TEMPLATE_DIR = "../frontend"
+STATIC_DIR = "../frontend/public"
 
 templates = Jinja2Templates(directory=TEMPLATE_DIR)
 has_index = os.path.exists(os.path.join(TEMPLATE_DIR, "index.html"))
@@ -153,6 +147,11 @@ def create_app() -> FastAPI:
         return {"status": "reset"}
 
     # Project management endpoints
+    def _project_to_payload(project_models_module, project) -> dict:
+        """Serialize project with camelCase plus legacy snake_case for compatibility."""
+        resp = project_models_module.ProjectResponse.model_validate(project)
+        return resp.model_dump(mode="json", by_alias=True)
+
     @fastapi_app.post("/api/projects", response_model=project_models.ProjectResponse)
     async def create_project(request: project_models.ProjectCreateRequest):
         """Create a new project."""
@@ -161,11 +160,7 @@ def create_app() -> FastAPI:
 
         try:
             project = await _service.create_project(request.name, request.prd)
-            response = project_models.ProjectResponse.model_validate(project)
-            return JSONResponse(
-                content=response.model_dump(mode="json"),
-                media_type="application/json",
-            )
+            return JSONResponse(content=_project_to_payload(project_models, project))
         except ProjectAlreadyExistsError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
 
@@ -178,13 +173,8 @@ def create_app() -> FastAPI:
             raise HTTPException(status_code=500, detail="Service not initialized")
 
         projects = await _service.list_projects()
-        responses = [
-            project_models.ProjectResponse.model_validate(project)
-            for project in projects
-        ]
         return JSONResponse(
-            content=[r.model_dump(mode="json") for r in responses],
-            media_type="application/json",
+            content=[_project_to_payload(project_models, p) for p in projects]
         )
 
     @fastapi_app.get(
@@ -197,11 +187,7 @@ def create_app() -> FastAPI:
 
         try:
             project = await _service.get_project(str(project_id))
-            response = project_models.ProjectResponse.model_validate(project)
-            return JSONResponse(
-                content=response.model_dump(mode="json"),
-                media_type="application/json",
-            )
+            return JSONResponse(content=_project_to_payload(project_models, project))
         except ProjectNotFoundError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 
@@ -219,11 +205,7 @@ def create_app() -> FastAPI:
             project = await _service.update_project(
                 str(project_id), name=request.name, prd=request.prd
             )
-            response = project_models.ProjectResponse.model_validate(project)
-            return JSONResponse(
-                content=response.model_dump(mode="json"),
-                media_type="application/json",
-            )
+            return JSONResponse(content=_project_to_payload(project_models, project))
         except ProjectNotFoundError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 
@@ -248,4 +230,4 @@ app = create_app()
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run("forgebase.interfaces.web:app", host="0.0.0.0", port=8000, reload=True)
