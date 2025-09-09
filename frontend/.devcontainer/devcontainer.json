@@ -30,7 +30,7 @@
             "onAutoForward": "notify"
         }
     },
-    "postCreateCommand": "npm ci",
+    "postCreateCommand": "npm install && npm ci",
     "waitFor": "postCreateCommand",
     "remoteUser": "node",
     "runArgs": [
