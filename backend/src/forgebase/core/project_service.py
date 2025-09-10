@@ -23,10 +23,11 @@ class ProjectService:
         """
         self._project_repository = project_repository
 
-    async def create_project(self, name: str, prd: str = "") -> Project:
+    async def create_project(self, user_id: str, name: str, prd: str = "") -> Project:
         """Create a new project.
 
         Args:
+            user_id: The ID of the user creating the project
             name: The project name
             prd: The initial PRD content (optional)
 
@@ -34,28 +35,34 @@ class ProjectService:
             The created project
 
         Raises:
-            ValueError: If project name is invalid
+            ValueError: If project name is invalid or user_id is empty
         """
+        if not user_id or not user_id.strip():
+            raise ValueError("User ID cannot be empty")
         if not name or not name.strip():
             raise ValueError("Project name cannot be empty")
         if len(name) > 255:
             raise ValueError("Project name too long (maximum 255 characters)")
 
-        project = Project.create(name=name, prd=prd)
+        project = Project.create(user_id=user_id, name=name, prd=prd)
         return await self._project_repository.create(project)
 
-    async def get_project(self, project_id: str) -> Project:
-        """Get a project by ID.
+    async def get_project(self, project_id: str, user_id: str) -> Project:
+        """Get a project by ID for a specific user.
 
         Args:
             project_id: The project ID as a string
+            user_id: The user ID that should own the project
 
         Returns:
-            The project if found
+            The project if found and owned by the user
 
         Raises:
-            ProjectNotFoundError: If project is not found or ID format is invalid
+            ProjectNotFoundError: If project is not found, doesn't belong to user, or ID format is invalid
         """
+        if not user_id or not user_id.strip():
+            raise ValueError("User ID cannot be empty")
+
         try:
             project_uuid = UUID(project_id)
         except ValueError as exc:
@@ -63,26 +70,29 @@ class ProjectService:
                 f"Invalid project ID format: {project_id}"
             ) from exc
 
-        project = await self._project_repository.get_by_id(project_uuid)
+        project = await self._project_repository.get_by_id_for_user(project_uuid, user_id)
         if not project:
             raise ProjectNotFoundError(f"Project {project_id} not found")
         return project
 
-    async def list_projects(self) -> list[Project]:
-        """List all projects.
+    async def list_projects(self, user_id: str) -> list[Project]:
+        """List all projects for a specific user.
 
         Returns:
-            List of all projects, ordered by creation date (newest first)
+            List of user's projects, ordered by creation date (newest first)
         """
-        return await self._project_repository.get_all()
+        if not user_id or not user_id.strip():
+            raise ValueError("User ID cannot be empty")
+        return await self._project_repository.get_all_for_user(user_id)
 
     async def update_project(
-        self, project_id: str, name: str | None = None, prd: str | None = None
+        self, project_id: str, user_id: str, name: str | None = None, prd: str | None = None
     ) -> Project:
-        """Update a project.
+        """Update a project for a specific user.
 
         Args:
             project_id: The project ID as a string
+            user_id: The user ID that should own the project
             name: New name for the project (optional)
             prd: New PRD content for the project (optional)
 
@@ -90,9 +100,12 @@ class ProjectService:
             The updated project
 
         Raises:
-            ProjectNotFoundError: If project is not found or ID format is invalid
-            ValueError: If project name is invalid
+            ProjectNotFoundError: If project is not found, doesn't belong to user, or ID format is invalid
+            ValueError: If project name is invalid or user_id is empty
         """
+        if not user_id or not user_id.strip():
+            raise ValueError("User ID cannot be empty")
+
         try:
             project_uuid = UUID(project_id)
         except ValueError as exc:
@@ -105,10 +118,11 @@ class ProjectService:
             if not name or not name.strip():
                 raise ValueError("Project name cannot be empty")
             if len(name) > 255:
-                raise ValueError("Project name too long (maximum 255 characters)")
+                raise ValueError(
+                    "Project name too long (maximum 255 characters)")
 
-        # Get existing project
-        existing_project = await self._project_repository.get_by_id(project_uuid)
+        # Get existing project (only if owned by user)
+        existing_project = await self._project_repository.get_by_id_for_user(project_uuid, user_id)
         if not existing_project:
             raise ProjectNotFoundError(f"Project {project_id} not found")
 

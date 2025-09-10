@@ -10,7 +10,10 @@ from pydantic import BaseModel, Field
 class ProjectCreateRequest(BaseModel):
     """Request model for creating a project."""
 
-    name: str = Field(..., min_length=1, max_length=255, description="The project name")
+    user_id: str = Field(..., min_length=1,
+                         description="The user ID who owns this project")
+    name: str = Field(..., min_length=1, max_length=255,
+                      description="The project name")
     prd: str = Field(default="", description="The PRD content for the project")
 
 
@@ -20,7 +23,8 @@ class ProjectUpdateRequest(BaseModel):
     name: Optional[str] = Field(
         None, min_length=1, max_length=255, description="The new project name"
     )
-    prd: Optional[str] = Field(None, description="The new PRD content for the project")
+    prd: Optional[str] = Field(
+        None, description="The new PRD content for the project")
 
 
 class ProjectUpdateNameRequest(BaseModel):
@@ -43,6 +47,8 @@ class ProjectResponse(BaseModel):
     model_config = {"from_attributes": True, "populate_by_name": True}
 
     id: UUID = Field(..., description="The project ID")
+    user_id: str = Field(..., alias="userId",
+                         description="The user ID who owns this project")
     name: str = Field(..., description="The project name")
     prd: str = Field(..., description="The PRD content for the project")
     created_at: datetime = Field(

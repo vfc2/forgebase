@@ -18,6 +18,9 @@ from forgebase.infrastructure import config, logging_config
 from forgebase.interfaces import project_models
 from forgebase.interfaces.project_models import ChatStreamRequest
 
+# Temporary test user ID - will be replaced with proper authentication later
+TEST_USER_ID = "test-user-123"
+
 
 TEMPLATE_DIR = "../frontend"
 STATIC_DIR = "../frontend/public"
@@ -190,7 +193,7 @@ def create_app() -> FastAPI:
     ):
         """Create a new project."""
         try:
-            project = await project_service.create_project(request.name, request.prd)
+            project = await project_service.create_project(request.user_id, request.name, request.prd)
             return JSONResponse(content=_project_to_payload(project_models, project))
         except ProjectAlreadyExistsError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
@@ -202,7 +205,7 @@ def create_app() -> FastAPI:
         project_service: ProjectService = Depends(get_project_service),
     ):
         """List all projects."""
-        projects = await project_service.list_projects()
+        projects = await project_service.list_projects(TEST_USER_ID)
         return JSONResponse(
             content=[_project_to_payload(project_models, p) for p in projects]
         )
@@ -215,7 +218,7 @@ def create_app() -> FastAPI:
     ):
         """Get a project by ID."""
         try:
-            project = await project_service.get_project(str(project_id))
+            project = await project_service.get_project(str(project_id), TEST_USER_ID)
             return JSONResponse(content=_project_to_payload(project_models, project))
         except ProjectNotFoundError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
@@ -231,7 +234,7 @@ def create_app() -> FastAPI:
         """Partially update a project (name and/or PRD)."""
         try:
             project = await project_service.update_project(
-                str(project_id), name=request.name, prd=request.prd
+                str(project_id), TEST_USER_ID, name=request.name, prd=request.prd
             )
             return JSONResponse(content=_project_to_payload(project_models, project))
         except ProjectNotFoundError as exc:

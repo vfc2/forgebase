@@ -51,6 +51,22 @@ class InMemoryProjectRepository:
         """
         return self._projects.get(project_id)
 
+    async def get_by_id_for_user(self, project_id: UUID, user_id: str) -> Optional[Project]:
+        """
+        Retrieve a project by its ID, but only if it belongs to the specified user.
+
+        Args:
+            project_id: The project ID to look up.
+            user_id: The user ID that should own the project.
+
+        Returns:
+            The project if found and owned by user, None otherwise.
+        """
+        project = self._projects.get(project_id)
+        if project and project.user_id == user_id:
+            return project
+        return None
+
     async def get_all(self) -> list[Project]:
         """
         Retrieve all projects.
@@ -60,6 +76,20 @@ class InMemoryProjectRepository:
         """
         projects = list(self._projects.values())
         return sorted(projects, key=lambda p: p.created_at, reverse=True)
+
+    async def get_all_for_user(self, user_id: str) -> list[Project]:
+        """
+        Retrieve all projects for a specific user.
+
+        Args:
+            user_id: The user ID to filter projects by.
+
+        Returns:
+            List of user's projects, ordered by creation date (newest first).
+        """
+        user_projects = [p for p in self._projects.values()
+                         if p.user_id == user_id]
+        return sorted(user_projects, key=lambda p: p.created_at, reverse=True)
 
     async def update(self, project: Project) -> Project:
         """
@@ -91,6 +121,23 @@ class InMemoryProjectRepository:
             True if the project was deleted, False if it didn't exist.
         """
         if project_id in self._projects:
+            del self._projects[project_id]
+            return True
+        return False
+
+    async def delete_for_user(self, project_id: UUID, user_id: str) -> bool:
+        """
+        Delete a project by its ID, but only if it belongs to the specified user.
+
+        Args:
+            project_id: The project ID to delete.
+            user_id: The user ID that should own the project.
+
+        Returns:
+            True if the project was deleted, False if it didn't exist or didn't belong to user.
+        """
+        project = self._projects.get(project_id)
+        if project and project.user_id == user_id:
             del self._projects[project_id]
             return True
         return False

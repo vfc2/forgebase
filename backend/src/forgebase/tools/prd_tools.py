@@ -11,10 +11,11 @@ class PRDTools(ToolPort):
     """PRD management tools for agents."""
 
     def __init__(
-        self, project_service: ProjectService, current_project_id: str | None = None
+        self, project_service: ProjectService, current_project_id: str | None = None, user_id: str = "test-user-123"
     ):
         self._project_service = project_service
         self._current_project_id = current_project_id
+        self._user_id = user_id
 
     @property
     def plugin_name(self) -> str:
@@ -26,6 +27,7 @@ class PRDTools(ToolPort):
 
     def set_project_context(self, project_id: str | None) -> None:
         """Set the current project context for operations."""
+        print(f"DEBUG PRDTools: Setting project context to: {project_id}")
         self._current_project_id = project_id
 
     @kernel_function(
@@ -40,12 +42,14 @@ class PRDTools(ToolPort):
         Returns:
             Success message confirming the update
         """
+        print(
+            f"DEBUG PRDTools.update_prd: current_project_id = {self._current_project_id}")
         if not self._current_project_id:
             return "Error: No project context set. Please select a project first."
 
         try:
             project = await self._project_service.update_project(
-                self._current_project_id, prd=prd_content
+                self._current_project_id, self._user_id, prd=prd_content
             )
             return f"PRD updated successfully for project '{project.name}'"
         except ValueError as e:

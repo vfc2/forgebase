@@ -76,12 +76,37 @@ class ProjectRepositoryPort(Protocol):
         """
         ...
 
+    async def get_by_id_for_user(self, project_id: UUID, user_id: str) -> Optional[Project]:
+        """
+        Retrieve a project by its ID, but only if it belongs to the specified user.
+
+        Args:
+            project_id: The project ID to look up.
+            user_id: The user ID that should own the project.
+
+        Returns:
+            The project if found and owned by user, None otherwise.
+        """
+        ...
+
     async def get_all(self) -> List[Project]:
         """
         Retrieve all projects.
 
         Returns:
             List of all projects, ordered by creation date (newest first).
+        """
+        ...
+
+    async def get_all_for_user(self, user_id: str) -> List[Project]:
+        """
+        Retrieve all projects for a specific user.
+
+        Args:
+            user_id: The user ID to filter projects by.
+
+        Returns:
+            List of user's projects, ordered by creation date (newest first).
         """
         ...
 
@@ -109,5 +134,18 @@ class ProjectRepositoryPort(Protocol):
 
         Returns:
             True if the project was deleted, False if it didn't exist.
+        """
+        ...
+
+    async def delete_for_user(self, project_id: UUID, user_id: str) -> bool:
+        """
+        Delete a project by its ID, but only if it belongs to the specified user.
+
+        Args:
+            project_id: The project ID to delete.
+            user_id: The user ID that should own the project.
+
+        Returns:
+            True if the project was deleted, False if it didn't exist or didn't belong to user.
         """
         ...
