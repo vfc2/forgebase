@@ -52,8 +52,10 @@ class TestProjectService:
     @pytest.mark.asyncio
     async def test_create_project(self, project_service):
         """Test creating a project."""
-        project = await project_service.create_project("Test Project", "Test PRD")
+        user_id = "test-user"
+        project = await project_service.create_project(user_id, "Test Project", "Test PRD")
 
+        assert project.user_id == user_id
         assert project.name == "Test Project"
         assert project.prd == "Test PRD"
         assert project.id is not None
@@ -61,11 +63,12 @@ class TestProjectService:
     @pytest.mark.asyncio
     async def test_get_project(self, project_service):
         """Test getting a project."""
+        user_id = "test-user"
         # Create a project first
-        created_project = await project_service.create_project("Test Project")
+        created_project = await project_service.create_project(user_id, "Test Project")
 
         # Get it back
-        retrieved_project = await project_service.get_project(str(created_project.id))
+        retrieved_project = await project_service.get_project(str(created_project.id), user_id)
 
         assert retrieved_project.id == created_project.id
         assert retrieved_project.name == "Test Project"
@@ -73,21 +76,23 @@ class TestProjectService:
     @pytest.mark.asyncio
     async def test_get_project_not_found(self, project_service):
         """Test getting a non-existent project."""
+        user_id = "test-user"
         with pytest.raises(ProjectNotFoundError):
-            await project_service.get_project(str(uuid4()))
+            await project_service.get_project(str(uuid4()), user_id)
 
     @pytest.mark.asyncio
     async def test_list_projects(self, project_service):
         """Test listing projects."""
+        user_id = "test-user"
         # Start with empty list
-        projects = await project_service.list_projects()
+        projects = await project_service.list_projects(user_id)
         assert len(projects) == 0
 
         # Add some projects
-        await project_service.create_project("Project 1")
-        await project_service.create_project("Project 2")
+        await project_service.create_project(user_id, "Project 1")
+        await project_service.create_project(user_id, "Project 2")
 
-        projects = await project_service.list_projects()
+        projects = await project_service.list_projects(user_id)
         assert len(projects) == 2
         project_names = {p.name for p in projects}
         assert project_names == {"Project 1", "Project 2"}
@@ -95,12 +100,13 @@ class TestProjectService:
     @pytest.mark.asyncio
     async def test_update_project(self, project_service):
         """Test updating a project."""
+        user_id = "test-user"
         # Create a project
-        project = await project_service.create_project("Original Name", "Original PRD")
+        project = await project_service.create_project(user_id, "Original Name", "Original PRD")
 
         # Update it
         updated_project = await project_service.update_project(
-            str(project.id), name="New Name", prd="New PRD"
+            str(project.id), user_id, name="New Name", prd="New PRD"
         )
 
         assert updated_project.id == project.id
@@ -111,12 +117,13 @@ class TestProjectService:
     @pytest.mark.asyncio
     async def test_update_project_partial(self, project_service):
         """Test updating only some fields of a project."""
+        user_id = "test-user"
         # Create a project
-        project = await project_service.create_project("Original Name", "Original PRD")
+        project = await project_service.create_project(user_id, "Original Name", "Original PRD")
 
         # Update only name
         updated_project = await project_service.update_project(
-            str(project.id), name="New Name"
+            str(project.id), user_id, name="New Name"
         )
 
         assert updated_project.name == "New Name"
@@ -125,73 +132,82 @@ class TestProjectService:
     @pytest.mark.asyncio
     async def test_update_project_not_found(self, project_service):
         """Test updating a non-existent project."""
+        user_id = "test-user"
         with pytest.raises(ProjectNotFoundError):
-            await project_service.update_project(str(uuid4()), name="New Name")
+            await project_service.update_project(str(uuid4()), user_id, name="New Name")
 
     @pytest.mark.asyncio
     async def test_delete_project(self, project_service):
         """Test deleting a project."""
+        user_id = "test-user"
         # Create a project
-        project = await project_service.create_project("Test Project")
+        project = await project_service.create_project(user_id, "Test Project")
 
         # Delete it
-        deleted = await project_service.delete_project(str(project.id))
+        deleted = await project_service.delete_project(str(project.id), user_id)
         assert deleted is True
 
-        # Try to get it (should fail)
+        # Verify it's gone
         with pytest.raises(ProjectNotFoundError):
-            await project_service.get_project(str(project.id))
+            await project_service.get_project(str(project.id), user_id)
 
     @pytest.mark.asyncio
     async def test_delete_project_not_found(self, project_service):
         """Test deleting a non-existent project."""
-        deleted = await project_service.delete_project(str(uuid4()))
+        user_id = "test-user"
+        deleted = await project_service.delete_project(str(uuid4()), user_id)
         assert deleted is False
 
     @pytest.mark.asyncio
     async def test_create_project_empty_name(self, project_service):
         """Test creating a project with empty name."""
+        user_id = "test-user"
         with pytest.raises(ValueError, match="Project name cannot be empty"):
-            await project_service.create_project("")
+            await project_service.create_project(user_id, "")
 
         with pytest.raises(ValueError, match="Project name cannot be empty"):
-            await project_service.create_project("   ")  # Whitespace only
+            # Whitespace only
+            await project_service.create_project(user_id, "   ")
 
     @pytest.mark.asyncio
     async def test_create_project_long_name(self, project_service):
         """Test creating a project with too long name."""
+        user_id = "test-user"
         long_name = "x" * 256  # Exceeds 255 character limit
         with pytest.raises(ValueError, match="Project name too long"):
-            await project_service.create_project(long_name)
+            await project_service.create_project(user_id, long_name)
 
     @pytest.mark.asyncio
     async def test_update_project_empty_name(self, project_service):
         """Test updating a project with empty name."""
-        project = await project_service.create_project("Original Name")
+        user_id = "test-user"
+        project = await project_service.create_project(user_id, "Original Name")
 
         with pytest.raises(ValueError, match="Project name cannot be empty"):
-            await project_service.update_project(str(project.id), name="")
+            await project_service.update_project(str(project.id), user_id, name="")
 
         with pytest.raises(ValueError, match="Project name cannot be empty"):
-            await project_service.update_project(str(project.id), name="   ")
+            await project_service.update_project(str(project.id), user_id, name="   ")
 
     @pytest.mark.asyncio
     async def test_update_project_long_name(self, project_service):
         """Test updating a project with too long name."""
-        project = await project_service.create_project("Original Name")
+        user_id = "test-user"
+        project = await project_service.create_project(user_id, "Original Name")
         long_name = "x" * 256  # Exceeds 255 character limit
 
         with pytest.raises(ValueError, match="Project name too long"):
-            await project_service.update_project(str(project.id), name=long_name)
+            await project_service.update_project(str(project.id), user_id, name=long_name)
 
     @pytest.mark.asyncio
     async def test_invalid_project_id_format(self, project_service):
         """Test operations with invalid project ID format."""
+        user_id = "test-user"
         with pytest.raises(ProjectNotFoundError, match="Invalid project ID format"):
-            await project_service.get_project("not-a-uuid")
+            await project_service.get_project("not-a-uuid", user_id)
 
         with pytest.raises(ProjectNotFoundError, match="Invalid project ID format"):
-            await project_service.update_project("not-a-uuid", name="New Name")
+            await project_service.update_project("not-a-uuid", user_id, name="New Name")
 
         with pytest.raises(ProjectNotFoundError, match="Invalid project ID format"):
-            await project_service.delete_project("not-a-uuid")
+            await project_service.delete_project("not-a-uuid", user_id)

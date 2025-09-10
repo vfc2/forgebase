@@ -8,6 +8,7 @@ from forgebase.infrastructure.stub_agent import StubAgent
 from forgebase.infrastructure.agent import Agent
 from forgebase.core.chat_service import ChatService
 from forgebase.core.project_service import ProjectService
+from forgebase.infrastructure.project_repository import InMemoryProjectRepository
 
 
 class TestConfiguration:
@@ -16,7 +17,8 @@ class TestConfiguration:
     @patch.dict(os.environ, {}, clear=True)
     def test_create_agent_returns_stub_when_no_env_vars(self):
         """Test that _create_agent returns StubAgent when environment variables are missing."""
-        agent = config._create_agent()
+        project_service = ProjectService(InMemoryProjectRepository())
+        agent = config._create_agent(project_service)
         assert isinstance(agent, StubAgent)
 
     @patch.dict(
@@ -30,7 +32,8 @@ class TestConfiguration:
     )
     def test_create_agent_returns_stub_when_api_key_empty(self):
         """Test that _create_agent returns StubAgent when API key is empty."""
-        agent = config._create_agent()
+        project_service = ProjectService(InMemoryProjectRepository())
+        agent = config._create_agent(project_service)
         assert isinstance(agent, StubAgent)
 
     @patch.dict(
@@ -44,7 +47,8 @@ class TestConfiguration:
     )
     def test_create_agent_returns_stub_when_endpoint_empty(self):
         """Test that _create_agent returns StubAgent when endpoint is empty."""
-        agent = config._create_agent()
+        project_service = ProjectService(InMemoryProjectRepository())
+        agent = config._create_agent(project_service)
         assert isinstance(agent, StubAgent)
 
     @patch.dict(
@@ -58,7 +62,8 @@ class TestConfiguration:
     )
     def test_create_agent_returns_stub_when_deployment_empty(self):
         """Test that _create_agent returns StubAgent when deployment name is empty."""
-        agent = config._create_agent()
+        project_service = ProjectService(InMemoryProjectRepository())
+        agent = config._create_agent(project_service)
         assert isinstance(agent, StubAgent)
 
     @patch.dict(
@@ -72,7 +77,8 @@ class TestConfiguration:
     )
     def test_create_agent_returns_real_agent_when_all_env_vars_present(self):
         """Test that _create_agent returns Agent when all environment variables are present."""
-        agent = config._create_agent()
+        project_service = ProjectService(InMemoryProjectRepository())
+        agent = config._create_agent(project_service)
         assert isinstance(agent, Agent)
 
     @patch.dict(os.environ, {}, clear=True)

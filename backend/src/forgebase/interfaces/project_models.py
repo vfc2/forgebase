@@ -10,8 +10,6 @@ from pydantic import BaseModel, Field
 class ProjectCreateRequest(BaseModel):
     """Request model for creating a project."""
 
-    user_id: str = Field(..., min_length=1,
-                         description="The user ID who owns this project")
     name: str = Field(..., min_length=1, max_length=255,
                       description="The project name")
     prd: str = Field(default="", description="The PRD content for the project")

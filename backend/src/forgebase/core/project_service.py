@@ -134,18 +134,23 @@ class ProjectService:
 
         return await self._project_repository.update(existing_project)
 
-    async def delete_project(self, project_id: str) -> bool:
+    async def delete_project(self, project_id: str, user_id: str) -> bool:
         """Delete a project by ID.
 
         Args:
             project_id: The project ID as a string
+            user_id: The ID of the user attempting to delete the project
 
         Returns:
             True if the project was deleted, False if it didn't exist
 
         Raises:
             ProjectNotFoundError: If ID format is invalid
+            ValueError: If user_id is empty
         """
+        if not user_id or not user_id.strip():
+            raise ValueError("User ID cannot be empty")
+
         try:
             project_uuid = UUID(project_id)
         except ValueError as exc:
@@ -153,4 +158,4 @@ class ProjectService:
                 f"Invalid project ID format: {project_id}"
             ) from exc
 
-        return await self._project_repository.delete(project_uuid)
+        return await self._project_repository.delete_for_user(project_uuid, user_id)

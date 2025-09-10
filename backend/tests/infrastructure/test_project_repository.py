@@ -20,7 +20,8 @@ class TestInMemoryProjectRepository:
     @pytest.mark.asyncio
     async def test_create_project(self, repository):
         """Test creating a project."""
-        project = Project.create("Test Project")
+        user_id = "test-user"
+        project = Project.create(user_id, "Test Project")
 
         result = await repository.create(project)
 
@@ -30,7 +31,8 @@ class TestInMemoryProjectRepository:
     @pytest.mark.asyncio
     async def test_create_project_already_exists(self, repository):
         """Test creating a project with an existing ID raises an exception."""
-        project = Project.create("Test Project")
+        user_id = "test-user"
+        project = Project.create(user_id, "Test Project")
 
         await repository.create(project)
 
@@ -42,7 +44,8 @@ class TestInMemoryProjectRepository:
     @pytest.mark.asyncio
     async def test_get_by_id(self, repository):
         """Test getting a project by ID."""
-        project = Project.create("Test Project")
+        user_id = "test-user"
+        project = Project.create(user_id, "Test Project")
         await repository.create(project)
 
         result = await repository.get_by_id(project.id)
@@ -65,9 +68,10 @@ class TestInMemoryProjectRepository:
     @pytest.mark.asyncio
     async def test_get_all_multiple(self, repository):
         """Test getting all projects."""
-        project1 = Project.create("Project 1")
-        project2 = Project.create("Project 2")
-        project3 = Project.create("Project 3")
+        user_id = "test-user"
+        project1 = Project.create(user_id, "Project 1")
+        project2 = Project.create(user_id, "Project 2")
+        project3 = Project.create(user_id, "Project 3")
 
         await repository.create(project1)
         await repository.create(project2)
@@ -84,7 +88,8 @@ class TestInMemoryProjectRepository:
     @pytest.mark.asyncio
     async def test_update_project(self, repository):
         """Test updating a project."""
-        project = Project.create("Original Name")
+        user_id = "test-user"
+        project = Project.create(user_id, "Original Name")
         await repository.create(project)
 
         project.update_name("Updated Name")
@@ -100,7 +105,8 @@ class TestInMemoryProjectRepository:
     @pytest.mark.asyncio
     async def test_update_project_prd(self, repository):
         """Test updating a project's PRD content."""
-        project = Project.create("Test Project", "Original PRD")
+        user_id = "test-user"
+        project = Project.create(user_id, "Test Project", "Original PRD")
         await repository.create(project)
 
         project.update_prd("Updated PRD content")
@@ -116,7 +122,8 @@ class TestInMemoryProjectRepository:
     @pytest.mark.asyncio
     async def test_update_project_not_found(self, repository):
         """Test updating a non-existent project raises an exception."""
-        project = Project.create("Test Project")
+        user_id = "test-user"
+        project = Project.create(user_id, "Test Project")
 
         with pytest.raises(ProjectNotFoundError) as exc_info:
             await repository.update(project)
@@ -126,7 +133,8 @@ class TestInMemoryProjectRepository:
     @pytest.mark.asyncio
     async def test_delete_project(self, repository):
         """Test deleting a project."""
-        project = Project.create("Test Project")
+        user_id = "test-user"
+        project = Project.create(user_id, "Test Project")
         await repository.create(project)
 
         result = await repository.delete(project.id)

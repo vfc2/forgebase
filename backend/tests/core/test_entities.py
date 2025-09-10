@@ -11,9 +11,11 @@ class TestProject:
 
     def test_create_project(self):
         """Test creating a project with the factory method."""
+        user_id = "test-user"
         name = "Test Project"
-        project = Project.create(name)
+        project = Project.create(user_id, name)
 
+        assert project.user_id == user_id
         assert project.name == name
         assert project.prd == ""  # Default empty PRD
         assert isinstance(project.id, UUID)
@@ -22,10 +24,12 @@ class TestProject:
 
     def test_create_project_with_prd(self):
         """Test creating a project with PRD content."""
+        user_id = "test-user"
         name = "Test Project"
         prd = "This is a test PRD content"
-        project = Project.create(name, prd)
+        project = Project.create(user_id, name, prd)
 
+        assert project.user_id == user_id
         assert project.name == name
         assert project.prd == prd
         assert isinstance(project.id, UUID)
@@ -34,14 +38,16 @@ class TestProject:
 
     def test_create_projects_have_unique_ids(self):
         """Test that multiple projects have unique IDs."""
-        project1 = Project.create("Project 1")
-        project2 = Project.create("Project 2")
+        user_id = "test-user"
+        project1 = Project.create(user_id, "Project 1")
+        project2 = Project.create(user_id, "Project 2")
 
         assert project1.id != project2.id
 
     def test_update_name(self):
         """Test updating a project's name."""
-        project = Project.create("Original Name")
+        user_id = "test-user"
+        project = Project.create(user_id, "Original Name")
         original_created_at = project.created_at
 
         new_name = "Updated Name"
@@ -54,7 +60,8 @@ class TestProject:
 
     def test_update_prd(self):
         """Test updating a project's PRD content."""
-        project = Project.create("Test Project")
+        user_id = "test-user"
+        project = Project.create(user_id, "Test Project")
         original_created_at = project.created_at
 
         new_prd = "Updated PRD content"
@@ -67,9 +74,11 @@ class TestProject:
 
     def test_project_dataclass_properties(self):
         """Test that Project behaves as expected as a dataclass."""
-        project1 = Project.create("Test")
+        user_id = "test-user"
+        project1 = Project.create(user_id, "Test")
         project2 = Project(
             id=project1.id,
+            user_id=project1.user_id,
             name=project1.name,
             prd=project1.prd,
             created_at=project1.created_at,

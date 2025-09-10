@@ -33,6 +33,15 @@ def get_project_repository() -> InMemoryProjectRepository:
     return _project_repository
 
 
+def reset_project_repository() -> None:
+    """Reset the global repository instance for testing.
+
+    This function is intended for test isolation only.
+    """
+    global _project_repository
+    _project_repository = None
+
+
 def get_chat_service() -> ChatService:
     """Get the chat service.
 

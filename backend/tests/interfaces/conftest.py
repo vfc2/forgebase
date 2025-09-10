@@ -1,4 +1,12 @@
 """Shared test fixtures for interface tests."""
 
-# Currently no shared fixtures needed for interface tests
-# Individual test modules use @patch decorators for their specific mocking needs
+import pytest
+from forgebase.infrastructure import config
+
+
+@pytest.fixture(autouse=True)
+def reset_repository():
+    """Reset the global repository before each test for isolation."""
+    config.reset_project_repository()
+    yield
+    config.reset_project_repository()

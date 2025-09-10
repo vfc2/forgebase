@@ -193,7 +193,7 @@ def create_app() -> FastAPI:
     ):
         """Create a new project."""
         try:
-            project = await project_service.create_project(request.user_id, request.name, request.prd)
+            project = await project_service.create_project(TEST_USER_ID, request.name, request.prd)
             return JSONResponse(content=_project_to_payload(project_models, project))
         except ProjectAlreadyExistsError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
@@ -245,7 +245,7 @@ def create_app() -> FastAPI:
         project_id: UUID, project_service: ProjectService = Depends(get_project_service)
     ):
         """Delete a project."""
-        deleted = await project_service.delete_project(str(project_id))
+        deleted = await project_service.delete_project(str(project_id), TEST_USER_ID)
         if deleted:
             return {"status": "deleted"}
         raise HTTPException(status_code=404, detail="Project not found")
