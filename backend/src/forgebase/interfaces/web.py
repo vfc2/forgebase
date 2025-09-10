@@ -47,7 +47,8 @@ def get_chat_service(request: Request) -> ChatService:
     """Dependency to retrieve the chat service from application state."""
     service = getattr(request.app.state, "chat_service", None)
     if service is None:
-        raise HTTPException(status_code=500, detail="Chat service not initialized")
+        raise HTTPException(
+            status_code=500, detail="Chat service not initialized")
     return service  # type: ignore[no-any-return]
 
 
@@ -55,7 +56,8 @@ def get_project_service(request: Request) -> ProjectService:
     """Dependency to retrieve the project service from application state."""
     service = getattr(request.app.state, "project_service", None)
     if service is None:
-        raise HTTPException(status_code=500, detail="Project service not initialized")
+        raise HTTPException(
+            status_code=500, detail="Project service not initialized")
     return service  # type: ignore[no-any-return]
 
 
@@ -105,7 +107,8 @@ def create_app() -> FastAPI:
 
     # Mount static files (path mocked in tests)
     if os.path.exists(STATIC_DIR):
-        fastapi_app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+        fastapi_app.mount(
+            "/static", StaticFiles(directory=STATIC_DIR), name="static")
 
     @fastapi_app.get("/")
     async def index(request: Request):
@@ -137,9 +140,15 @@ def create_app() -> FastAPI:
         chat_service: ChatService = Depends(get_chat_service),
     ):
         """Stream chat response with optional project context."""
+        # Debug logging
+        print(
+            f"DEBUG: Received project_id: {request.project_id} (type: {type(request.project_id)})")
+
         # Set project context if provided
         if request.project_id:
-            chat_service.set_project_context(str(request.project_id))
+            project_id_str = str(request.project_id)
+            print(f"DEBUG: Setting project context to: {project_id_str}")
+            chat_service.set_project_context(project_id_str)
 
         async def generate():
             async for chunk in chat_service.send_message_stream(request.message):
@@ -248,4 +257,5 @@ app = create_app()
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("forgebase.interfaces.web:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("forgebase.interfaces.web:app",
+                host="0.0.0.0", port=8000, reload=True)

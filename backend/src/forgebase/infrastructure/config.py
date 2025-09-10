@@ -17,13 +17,31 @@ from forgebase.tools.prd_tools import PRDTools
 load_dotenv()
 
 
+# Global singleton repository instance
+_project_repository: InMemoryProjectRepository | None = None
+
+
+def get_project_repository() -> InMemoryProjectRepository:
+    """Get the shared project repository instance.
+
+    Returns:
+        Shared InMemoryProjectRepository instance
+    """
+    global _project_repository
+    if _project_repository is None:
+        _project_repository = InMemoryProjectRepository()
+    return _project_repository
+
+
 def get_chat_service() -> ChatService:
     """Get the chat service.
 
     Returns:
         Configured ChatService instance
     """
-    agent = _create_agent()
+    # Use the shared project service to ensure same repository
+    project_service = get_project_service()
+    agent = _create_agent(project_service)
     return ChatService(agent)
 
 
@@ -33,18 +51,20 @@ def get_project_service() -> ProjectService:
     Returns:
         Configured ProjectService instance
     """
-    repository = InMemoryProjectRepository()
+    repository = get_project_repository()
     return ProjectService(repository)
 
 
-def _create_agent() -> AgentPort:
+def _create_agent(project_service: ProjectService) -> AgentPort:
     """Create an agent based on available configuration.
+
+    Args:
+        project_service: Shared project service instance
 
     Returns:
         Agent if Azure OpenAI config is available, else StubAgent
     """
-    # Create tools
-    project_service = get_project_service()
+    # Create tools with the shared project service
     prd_tools = PRDTools(project_service)
     tools: List[ToolPort] = [prd_tools]
 

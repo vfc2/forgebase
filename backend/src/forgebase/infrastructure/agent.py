@@ -98,6 +98,14 @@ class Agent(AgentPort):
 
     def set_project_context(self, project_id: str | None) -> None:
         """Set the current project context for agent tools."""
+        print(f"DEBUG Agent.set_project_context: project_id = {project_id}")
+        print(
+            f"DEBUG Agent.set_project_context: tools = {[tool.__class__.__name__ for tool in self._tools]}")
         for tool in self._tools:
             if hasattr(tool, "set_project_context"):
+                print(
+                    f"DEBUG Agent.set_project_context: calling set_project_context on {tool.__class__.__name__}")
                 tool.set_project_context(project_id)
+            else:
+                print(
+                    f"DEBUG Agent.set_project_context: {tool.__class__.__name__} does not have set_project_context")
