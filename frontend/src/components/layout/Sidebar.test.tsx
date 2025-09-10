@@ -18,11 +18,13 @@ const mockProjects: Project[] = [
     {
         id: '1',
         name: 'E-commerce Platform PRD',
+        prd: '',
         createdAt: new Date(2025, 8, 1)
     },
     {
         id: '2',
         name: 'Mobile App Requirements',
+        prd: '',
         createdAt: new Date(2025, 8, 2)
     }
 ];

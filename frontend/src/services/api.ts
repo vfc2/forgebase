@@ -182,7 +182,7 @@ class ApiService {
 
     async updateProject(id: string, request: ProjectUpdateRequest): Promise<Project> {
         const project = await this.request<Project>(`/api/projects/${id}`, {
-            method: 'PUT',
+            method: 'PATCH',
             body: JSON.stringify(request)
         });
         // Convert date strings to Date objects with validation

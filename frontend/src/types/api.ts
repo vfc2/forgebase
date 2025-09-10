@@ -7,6 +7,7 @@ export interface ChatMessage {
 
 export interface ChatRequest {
     message: string;
+    projectId?: string;
 }
 
 export interface ApiError {
@@ -18,14 +19,17 @@ export interface ApiError {
 export interface Project {
     id: string;
     name: string;
+    prd: string;
     createdAt: Date;
     updatedAt?: Date;
 }
 
 export interface ProjectCreateRequest {
     name: string;
+    prd?: string;
 }
 
 export interface ProjectUpdateRequest {
-    name: string;
+    name?: string;
+    prd?: string;
 }

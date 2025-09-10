@@ -80,7 +80,10 @@ export const useChat = ({ projectId }: UseChatProps) => {
             controllerRef.current?.abort();
             controllerRef.current = new AbortController();
             // Start the streaming chat
-            const stream = apiService.streamChat({ message }, controllerRef.current.signal);
+            const stream = apiService.streamChat({ 
+                message, 
+                projectId: projectId || undefined 
+            }, controllerRef.current.signal);
 
             try {
                 for await (const chunk of stream) {

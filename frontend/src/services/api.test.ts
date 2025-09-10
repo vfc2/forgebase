@@ -103,6 +103,7 @@ describe('ApiService', () => {
         const mockProject: Project = {
             id: '123e4567-e89b-12d3-a456-426614174000',
             name: 'Test Project',
+            prd: '',
             createdAt: new Date('2023-01-01T00:00:00.000Z'),
             updatedAt: new Date('2023-01-02T00:00:00.000Z')
         };

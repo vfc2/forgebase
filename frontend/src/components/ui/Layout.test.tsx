@@ -76,8 +76,8 @@ describe('Layout', () => {
         // Reset mock to default behavior
         vi.mocked(useProjects).mockReturnValue({
             projects: [
-                { id: 'project-1', name: 'Test Project 1', createdAt: new Date() },
-                { id: 'project-2', name: 'Test Project 2', createdAt: new Date() }
+                { id: 'project-1', name: 'Test Project 1', prd: '', createdAt: new Date() },
+                { id: 'project-2', name: 'Test Project 2', prd: '', createdAt: new Date() }
             ],
             currentProjectId: 'project-1',
             createProject: vi.fn(),
