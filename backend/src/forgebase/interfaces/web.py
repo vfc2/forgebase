@@ -211,15 +211,15 @@ def create_app() -> FastAPI:
         except ProjectNotFoundError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 
-    @fastapi_app.put(
+    @fastapi_app.patch(
         "/api/projects/{project_id}", response_model=project_models.ProjectResponse
     )
-    async def update_project(
+    async def update_project_partial(
         project_id: UUID,
         request: project_models.ProjectUpdateRequest,
         project_service: ProjectService = Depends(get_project_service),
     ):
-        """Update a project (name and/or PRD)."""
+        """Partially update a project (name and/or PRD)."""
         try:
             project = await project_service.update_project(
                 str(project_id), name=request.name, prd=request.prd

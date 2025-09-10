@@ -95,7 +95,7 @@ class TestProjectAPI:
         created_project = create_response.json()
 
         # Update the project
-        response = client.put(
+        response = client.patch(
             f"/api/projects/{created_project['id']}", json={"name": "Updated Name"}
         )
 
@@ -109,7 +109,7 @@ class TestProjectAPI:
     def test_update_project_not_found(self, client):
         """Test updating a non-existent project."""
         non_existent_id = str(uuid4())
-        response = client.put(
+        response = client.patch(
             f"/api/projects/{non_existent_id}", json={"name": "New Name"}
         )
 
@@ -123,7 +123,7 @@ class TestProjectAPI:
         created_project = create_response.json()
 
         # Try to update with empty name
-        response = client.put(
+        response = client.patch(
             f"/api/projects/{created_project['id']}", json={"name": ""}
         )
 
@@ -166,7 +166,7 @@ class TestProjectAPI:
         assert get_response.json() == project
 
         # Update
-        update_response = client.put(
+        update_response = client.patch(
             f"/api/projects/{project['id']}", json={"name": "CRUD Test Updated"}
         )
         assert update_response.status_code == 200

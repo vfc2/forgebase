@@ -122,7 +122,7 @@ class TestProjectAPI:
         project_id = created["id"]
 
         # Update the project
-        response = client.put(
+        response = client.patch(
             f"/api/projects/{project_id}",
             json={"name": "Updated Name", "prd": "Updated PRD"},
         )
@@ -136,10 +136,48 @@ class TestProjectAPI:
         assert data["createdAt"] == created["createdAt"]
         assert data["updatedAt"] is not None
 
+    def test_update_project_partial_name_only(self, client):
+        """Test updating only the project name."""
+        # Create a project
+        created = client.post(
+            "/api/projects", json={"name": "Original Name", "prd": "Original PRD"}
+        ).json()
+        project_id = created["id"]
+
+        # Update only the name
+        response = client.patch(
+            f"/api/projects/{project_id}", json={"name": "Updated Name Only"}
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["name"] == "Updated Name Only"
+        assert data["prd"] == "Original PRD"  # PRD unchanged
+        assert data["updatedAt"] is not None
+
+    def test_update_project_partial_prd_only(self, client):
+        """Test updating only the PRD content."""
+        # Create a project
+        created = client.post(
+            "/api/projects", json={"name": "Original Name", "prd": "Original PRD"}
+        ).json()
+        project_id = created["id"]
+
+        # Update only the PRD
+        response = client.patch(
+            f"/api/projects/{project_id}", json={"prd": "Updated PRD Only"}
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["name"] == "Original Name"  # Name unchanged
+        assert data["prd"] == "Updated PRD Only"
+        assert data["updatedAt"] is not None
+
     def test_update_project_not_found(self, client):
         """Test updating a non-existent project."""
         non_existent_id = str(uuid4())
-        response = client.put(
+        response = client.patch(
             f"/api/projects/{non_existent_id}",
             json={"name": "New Name", "prd": "New PRD"},
         )
@@ -153,7 +191,7 @@ class TestProjectAPI:
         project_id = created["id"]
 
         # Try to update with empty name
-        response = client.put(
+        response = client.patch(
             f"/api/projects/{project_id}", json={"name": "", "prd": "Some PRD"}
         )
 
@@ -198,7 +236,7 @@ class TestProjectAPI:
         assert data["prd"] == "Test PRD"
 
         # Update
-        update_response = client.put(
+        update_response = client.patch(
             f"/api/projects/{project_id}",
             json={"name": "Updated Workflow Test", "prd": "Updated PRD"},
         )

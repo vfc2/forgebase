@@ -103,6 +103,7 @@ python -m pytest tests
 * **Async-first design**: Use `asyncio` patterns throughout
 * **Tool protocols**: Tools implement `ToolPort` and register with Semantic Kernel
 * **Project context**: Tools receive project context through `set_project_context()`
+* **RESTful HTTP verbs**: Use PATCH for partial updates, POST for creation, GET for retrieval
 
 ## Strict Rules for Agents
 
@@ -134,7 +135,8 @@ python -m pytest tests
 - `POST /api/projects` - Create project
 - `GET /api/projects` - List projects (newest first)  
 - `GET /api/projects/{id}` - Get project by ID
-- `PUT /api/projects/{id}` - Update project name and/or PRD
+- `PATCH /api/projects/{id}` - Partially update project name and/or PRD
 - `DELETE /api/projects/{id}` - Delete project
 - Uses Pydantic models for validation, repository pattern for persistence
 - Project entity includes: `id`, `name`, `prd` (content), `created_at`, `updated_at`
+- PATCH semantics: Only provided fields are updated, others remain unchanged

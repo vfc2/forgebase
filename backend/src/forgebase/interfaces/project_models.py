@@ -15,12 +15,12 @@ class ProjectCreateRequest(BaseModel):
 
 
 class ProjectUpdateRequest(BaseModel):
-    """Request model for updating a project."""
+    """Request model for partially updating a project (PATCH semantics)."""
 
-    name: str = Field(
-        ..., min_length=1, max_length=255, description="The new project name"
+    name: Optional[str] = Field(
+        None, min_length=1, max_length=255, description="The new project name"
     )
-    prd: str = Field(default="", description="The new PRD content for the project")
+    prd: Optional[str] = Field(None, description="The new PRD content for the project")
 
 
 class ProjectUpdateNameRequest(BaseModel):

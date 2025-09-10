@@ -107,7 +107,7 @@ The backend will be available at http://localhost:8000
   ```
 
 #### Update Project
-- **PUT** `/api/projects/{id}`
+- **PATCH** `/api/projects/{id}`
 - **Request Body:**
   ```json
   {
@@ -116,7 +116,7 @@ The backend will be available at http://localhost:8000
   }
   ```
 - **Response:** `200 OK` or `404 Not Found`
-- **Description:** Updates project name and/or PRD content. Agent tools use this to save PRD content.
+- **Description:** Partially update project name and/or PRD content. Agent tools use this to save PRD content.
 
 #### Delete Project
 - **DELETE** `/api/projects/{id}`
