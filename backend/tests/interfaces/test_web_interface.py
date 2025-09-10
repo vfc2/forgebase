@@ -53,7 +53,14 @@ class TestWebInterfaceIntegration(unittest.TestCase):
 
     def setUp(self):
         """Set up test client with the actual app instance."""
+        # Use the TestClient as a context manager to ensure lifespan is triggered
         self.client = TestClient(app)
+        # Manually trigger lifespan events to ensure service is initialized
+        self.client.__enter__()
+
+    def tearDown(self):
+        """Tear down test client."""
+        self.client.__exit__(None, None, None)
 
     def test_health_endpoint_works(self):
         """Test that health endpoint returns expected response."""
@@ -78,27 +85,27 @@ class TestWebInterfaceIntegration(unittest.TestCase):
         """Test that project management endpoints are accessible."""
         # Test GET /api/projects (list projects)
         response = self.client.get("/api/projects")
-        # Should be 200 (success) or 500 (service not initialized)
-        assert response.status_code in [200, 500]
+        # Should be 200 (success) since service is initialized via lifespan
+        assert response.status_code == 200
 
         # Test POST /api/projects (create project)
         response = self.client.post(
             "/api/projects", json={"name": "Test Project", "prd": "Test content"}
         )
-        # Should be 200 (success) or 500 (service not initialized)
-        assert response.status_code in [200, 500]
+        # Should be 200 (success) since service is initialized via lifespan
+        assert response.status_code == 200
 
     def test_chat_endpoints_exist(self):
         """Test that chat endpoints are accessible."""
         # Test POST /api/chat/reset
         response = self.client.post("/api/chat/reset")
-        # Should be 200 (success) or 500 (service not initialized)
-        assert response.status_code in [200, 500]
+        # Should be 200 (success) since service is initialized via lifespan
+        assert response.status_code == 200
 
         # Test POST /api/chat/stream
         response = self.client.post("/api/chat/stream", json={"message": "Hello"})
-        # Should be 200 (success) or 500 (service not initialized)
-        assert response.status_code in [200, 500]
+        # Should be 200 (success) since service is initialized via lifespan
+        assert response.status_code == 200
 
     def test_cors_headers_present(self):
         """Test that CORS headers are properly configured."""

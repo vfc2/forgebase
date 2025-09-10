@@ -133,7 +133,8 @@ class ForgebaseService:
             existing_project.update_name(name)
         if prd is not None and prd != existing_project.prd:
             existing_project.update_prd(prd)
-        # If neither field changed, do not modify updated_at; repository still performs id existence check
+        # If neither field changed, do not modify updated_at;
+        # repository still performs id existence check
         return await self._project_repository.update(existing_project)
 
     async def delete_project(self, project_id: str) -> bool:

@@ -46,11 +46,10 @@ def _create_agent() -> AgentPort:
             instructions=_load_prd_instructions(),
             role="prd_facilitator",
         )
-    else:
-        return StubAgent(
-            instructions=_load_prd_instructions(),
-            role="prd_facilitator",
-        )
+    return StubAgent(
+        instructions=_load_prd_instructions(),
+        role="prd_facilitator",
+    )
 
 
 def _load_prd_instructions() -> str:
