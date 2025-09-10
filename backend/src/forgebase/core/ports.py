@@ -10,8 +10,7 @@ class AgentPort(Protocol):
     """
     Defines the interface for a chat agent.
 
-    An agent is responsible for receiving user messages and generating
-    a streaming response, potentially with access to tools and data repositories.
+    An agent receives user messages and yields a streaming response.
     """
 
     def send_message_stream(self, user_text: str) -> AsyncIterator[str]:
@@ -44,9 +43,6 @@ class AgentPort(Protocol):
 class ProjectRepositoryPort(Protocol):
     """
     Defines the interface for project persistence.
-
-    This protocol abstracts the storage mechanism for projects,
-    allowing different implementations (in-memory, database, etc.).
     """
 
     async def create(self, project: Project) -> Project:

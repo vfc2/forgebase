@@ -1,6 +1,6 @@
 """Unified service for chat and project management."""
 
-from datetime import datetime, UTC
+from __future__ import annotations
 from typing import AsyncIterator
 from uuid import UUID
 
@@ -128,16 +128,13 @@ class ForgebaseService:
         if not existing_project:
             raise ProjectNotFoundError(f"Project {project_id} not found")
 
-        # Create updated project
-        updated_project = Project(
-            id=existing_project.id,
-            name=name if name is not None else existing_project.name,
-            prd=prd if prd is not None else existing_project.prd,
-            created_at=existing_project.created_at,
-            updated_at=datetime.now(UTC),
-        )
-
-        return await self._project_repository.update(updated_project)
+        # Mutate existing project using entity methods to ensure timestamp logic
+        if name is not None and name != existing_project.name:
+            existing_project.update_name(name)
+        if prd is not None and prd != existing_project.prd:
+            existing_project.update_prd(prd)
+        # If neither field changed, do not modify updated_at; repository still performs id existence check
+        return await self._project_repository.update(existing_project)
 
     async def delete_project(self, project_id: str) -> bool:
         """Delete a project by ID.
