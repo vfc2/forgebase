@@ -74,7 +74,7 @@ class StubAgent(AgentPort):
                 "mode ",
                 "right ",
                 "now. ",
-                f"This ",
+                "This ",
                 "is ",
                 "message ",
                 f"#{self._message_count}. ",
@@ -84,7 +84,7 @@ class StubAgent(AgentPort):
                 "help ",
                 "you?",
             ]
-        elif any(word in user_lower for word in ["prd", "product", "requirement"]):
+        if any(word in user_lower for word in ["prd", "product", "requirement"]):
             return [
                 "I'd ",
                 "be ",
@@ -127,7 +127,7 @@ class StubAgent(AgentPort):
                 "to ",
                 "discuss?",
             ]
-        elif any(word in user_lower for word in ["help", "what", "how"]):
+        if any(word in user_lower for word in ["help", "what", "how"]):
             return [
                 "I'm ",
                 "a ",

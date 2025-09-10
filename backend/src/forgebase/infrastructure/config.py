@@ -4,7 +4,8 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-from forgebase.core.service import ForgebaseService
+from forgebase.core.chat_service import ChatService
+from forgebase.core.project_service import ProjectService
 from forgebase.core.ports import AgentPort
 from forgebase.infrastructure.agent import Agent
 from forgebase.infrastructure.stub_agent import StubAgent
@@ -13,19 +14,24 @@ from forgebase.infrastructure.project_repository import InMemoryProjectRepositor
 load_dotenv()
 
 
-def get_service() -> ForgebaseService:
-    """Get the main forgebase service.
+def get_chat_service() -> ChatService:
+    """Get the chat service.
 
     Returns:
-        Configured ForgebaseService instance
+        Configured ChatService instance
     """
-    # Create agent based on available configuration
     agent = _create_agent()
+    return ChatService(agent)
 
-    # Create repository
+
+def get_project_service() -> ProjectService:
+    """Get the project service.
+
+    Returns:
+        Configured ProjectService instance
+    """
     repository = InMemoryProjectRepository()
-
-    return ForgebaseService(agent, repository)
+    return ProjectService(repository)
 
 
 def _create_agent() -> AgentPort:

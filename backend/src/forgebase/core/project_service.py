@@ -1,44 +1,28 @@
-"""Unified service for chat and project management."""
+"""Project management service for CRUD operations and business logic."""
 
 from __future__ import annotations
-from typing import AsyncIterator
 from uuid import UUID
 
-from forgebase.core.ports import AgentPort, ProjectRepositoryPort
 from forgebase.core.entities import Project
 from forgebase.core.exceptions import ProjectNotFoundError
+from forgebase.core.ports import ProjectRepositoryPort
 
 
-class ForgebaseService:
-    """Main service orchestrating chat and project management."""
+class ProjectService:
+    """Service for project CRUD operations and business logic.
 
-    def __init__(self, agent: AgentPort, project_repository: ProjectRepositoryPort):
-        """Initialize the service.
+    Handles all project-related operations including validation,
+    persistence coordination, and business rules.
+    """
+
+    def __init__(self, project_repository: ProjectRepositoryPort):
+        """Initialize with a project repository.
 
         Args:
-            agent: Agent implementation for chat functionality
             project_repository: Repository for project persistence
         """
-        self._agent = agent
         self._project_repository = project_repository
 
-    async def send_message_stream(self, user_text: str) -> AsyncIterator[str]:
-        """Send message and stream response.
-
-        Args:
-            user_text: User input message
-
-        Yields:
-            String chunks of the agent's response
-        """
-        async for chunk in self._agent.send_message_stream(user_text):
-            yield chunk
-
-    async def reset_chat(self) -> None:
-        """Reset chat state."""
-        await self._agent.reset()
-
-    # Project management methods
     async def create_project(self, name: str, prd: str = "") -> Project:
         """Create a new project.
 
@@ -133,8 +117,7 @@ class ForgebaseService:
             existing_project.update_name(name)
         if prd is not None and prd != existing_project.prd:
             existing_project.update_prd(prd)
-        # If neither field changed, do not modify updated_at;
-        # repository still performs id existence check
+
         return await self._project_repository.update(existing_project)
 
     async def delete_project(self, project_id: str) -> bool:

@@ -6,7 +6,8 @@ from unittest.mock import patch
 from forgebase.infrastructure import config
 from forgebase.infrastructure.stub_agent import StubAgent
 from forgebase.infrastructure.agent import Agent
-from forgebase.core.service import ForgebaseService
+from forgebase.core.chat_service import ChatService
+from forgebase.core.project_service import ProjectService
 
 
 class TestConfiguration:
@@ -75,10 +76,10 @@ class TestConfiguration:
         assert isinstance(agent, Agent)
 
     @patch.dict(os.environ, {}, clear=True)
-    def test_get_service_returns_valid_service_with_stub(self):
-        """Test that get_service returns a valid ForgebaseService with stub agent."""
-        service = config.get_service()
-        assert isinstance(service, ForgebaseService)
+    def test_get_chat_service_returns_valid_service_with_stub(self):
+        """Test that get_chat_service returns a valid ChatService with stub agent."""
+        service = config.get_chat_service()
+        assert isinstance(service, ChatService)
 
     @patch.dict(
         os.environ,
@@ -89,10 +90,16 @@ class TestConfiguration:
         },
         clear=True,
     )
-    def test_get_service_returns_valid_service_with_real_agent(self):
-        """Test that get_service returns a valid ForgebaseService with real agent."""
-        service = config.get_service()
-        assert isinstance(service, ForgebaseService)
+    def test_get_chat_service_returns_valid_service_with_real_agent(self):
+        """Test that get_chat_service returns a valid ChatService with real agent."""
+        service = config.get_chat_service()
+        assert isinstance(service, ChatService)
+
+    @patch.dict(os.environ, {}, clear=True)
+    def test_get_project_service_returns_valid_service(self):
+        """Test that get_project_service returns a valid ProjectService."""
+        service = config.get_project_service()
+        assert isinstance(service, ProjectService)
 
 
 class TestPRDInstructionsLoading:

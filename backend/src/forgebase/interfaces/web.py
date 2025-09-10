@@ -11,7 +11,8 @@ from fastapi.responses import StreamingResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from forgebase.core.service import ForgebaseService
+from forgebase.core.chat_service import ChatService
+from forgebase.core.project_service import ProjectService
 from forgebase.core.exceptions import ProjectNotFoundError, ProjectAlreadyExistsError
 from forgebase.infrastructure import config, logging_config
 from forgebase.interfaces import project_models
@@ -28,22 +29,32 @@ has_index = os.path.exists(os.path.join(TEMPLATE_DIR, "index.html"))
 async def lifespan(fastapi_app: FastAPI):
     """Application lifespan context.
 
-    Initializes the service and stores it on ``app.state``. This avoids hidden
+    Initializes the services and stores them on ``app.state``. This avoids hidden
     globals, improves test isolation, and allows multiple app instances.
     """
     logging_config.setup_logging(debug=False)
-    fastapi_app.state.service = config.get_service()
+    fastapi_app.state.chat_service = config.get_chat_service()
+    fastapi_app.state.project_service = config.get_project_service()
     try:
         yield
     finally:
-        fastapi_app.state.service = None
+        fastapi_app.state.chat_service = None
+        fastapi_app.state.project_service = None
 
 
-def get_service(request: Request) -> ForgebaseService:
-    """Dependency to retrieve the configured service from application state."""
-    service = getattr(request.app.state, "service", None)
+def get_chat_service(request: Request) -> ChatService:
+    """Dependency to retrieve the chat service from application state."""
+    service = getattr(request.app.state, "chat_service", None)
     if service is None:
-        raise HTTPException(status_code=500, detail="Service not initialized")
+        raise HTTPException(status_code=500, detail="Chat service not initialized")
+    return service  # type: ignore[no-any-return]
+
+
+def get_project_service(request: Request) -> ProjectService:
+    """Dependency to retrieve the project service from application state."""
+    service = getattr(request.app.state, "project_service", None)
+    if service is None:
+        raise HTTPException(status_code=500, detail="Project service not initialized")
     return service  # type: ignore[no-any-return]
 
 
@@ -121,13 +132,13 @@ def create_app() -> FastAPI:
 
     @fastapi_app.post("/api/chat/stream")
     async def chat_stream(
-        request: dict, service: ForgebaseService = Depends(get_service)
+        request: dict, chat_service: ChatService = Depends(get_chat_service)
     ):
         """Stream chat response."""
         user_message = request.get("message", "")
 
         async def generate():
-            async for chunk in service.send_message_stream(user_message):
+            async for chunk in chat_service.send_message_stream(user_message):
                 # Escape newlines for SSE format
                 escaped_chunk = chunk.replace("\n", "\\n")
                 yield f"data: {escaped_chunk}\n\n".encode("utf-8")
@@ -146,9 +157,9 @@ def create_app() -> FastAPI:
         )
 
     @fastapi_app.post("/api/chat/reset")
-    async def reset_chat(service: ForgebaseService = Depends(get_service)):
+    async def reset_chat(chat_service: ChatService = Depends(get_chat_service)):
         """Reset the chat conversation."""
-        await service.reset_chat()
+        await chat_service.reset_chat()
         return {"status": "reset"}
 
     # Project management endpoints
@@ -162,11 +173,11 @@ def create_app() -> FastAPI:
     @fastapi_app.post("/api/projects", response_model=project_models.ProjectResponse)
     async def create_project(
         request: project_models.ProjectCreateRequest,
-        service: ForgebaseService = Depends(get_service),
+        project_service: ProjectService = Depends(get_project_service),
     ):
         """Create a new project."""
         try:
-            project = await service.create_project(request.name, request.prd)
+            project = await project_service.create_project(request.name, request.prd)
             return JSONResponse(content=_project_to_payload(project_models, project))
         except ProjectAlreadyExistsError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
@@ -174,9 +185,11 @@ def create_app() -> FastAPI:
     @fastapi_app.get(
         "/api/projects", response_model=list[project_models.ProjectResponse]
     )
-    async def list_projects(service: ForgebaseService = Depends(get_service)):
+    async def list_projects(
+        project_service: ProjectService = Depends(get_project_service),
+    ):
         """List all projects."""
-        projects = await service.list_projects()
+        projects = await project_service.list_projects()
         return JSONResponse(
             content=[_project_to_payload(project_models, p) for p in projects]
         )
@@ -185,11 +198,11 @@ def create_app() -> FastAPI:
         "/api/projects/{project_id}", response_model=project_models.ProjectResponse
     )
     async def get_project(
-        project_id: UUID, service: ForgebaseService = Depends(get_service)
+        project_id: UUID, project_service: ProjectService = Depends(get_project_service)
     ):
         """Get a project by ID."""
         try:
-            project = await service.get_project(str(project_id))
+            project = await project_service.get_project(str(project_id))
             return JSONResponse(content=_project_to_payload(project_models, project))
         except ProjectNotFoundError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
@@ -200,11 +213,11 @@ def create_app() -> FastAPI:
     async def update_project(
         project_id: UUID,
         request: project_models.ProjectUpdateRequest,
-        service: ForgebaseService = Depends(get_service),
+        project_service: ProjectService = Depends(get_project_service),
     ):
         """Update a project (name and/or PRD)."""
         try:
-            project = await service.update_project(
+            project = await project_service.update_project(
                 str(project_id), name=request.name, prd=request.prd
             )
             return JSONResponse(content=_project_to_payload(project_models, project))
@@ -213,10 +226,10 @@ def create_app() -> FastAPI:
 
     @fastapi_app.delete("/api/projects/{project_id}")
     async def delete_project(
-        project_id: UUID, service: ForgebaseService = Depends(get_service)
+        project_id: UUID, project_service: ProjectService = Depends(get_project_service)
     ):
         """Delete a project."""
-        deleted = await service.delete_project(str(project_id))
+        deleted = await project_service.delete_project(str(project_id))
         if deleted:
             return {"status": "deleted"}
         raise HTTPException(status_code=404, detail="Project not found")

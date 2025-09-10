@@ -17,7 +17,7 @@ def main() -> None:
 def chat(debug: bool) -> None:
     """Starts an interactive chat session."""
     logging_config.setup_logging(debug)
-    service = config.get_service()
+    chat_service = config.get_chat_service()
 
     async def run() -> None:
         """Runs the async chat loop."""
@@ -28,12 +28,12 @@ def chat(debug: bool) -> None:
                 if user_input.lower() == "/exit":
                     break
                 if user_input.lower() == "/reset":
-                    await service.reset_chat()
+                    await chat_service.reset_chat()
                     print("Conversation reset.")
                     continue
 
                 print("Agent> ", end="")
-                async for chunk in service.send_message_stream(user_input):
+                async for chunk in chat_service.send_message_stream(user_input):
                     print(chunk, end="", flush=True)
                 print()
             except (KeyboardInterrupt, EOFError):
