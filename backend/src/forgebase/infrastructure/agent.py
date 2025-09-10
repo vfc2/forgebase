@@ -2,6 +2,7 @@
 
 from typing import AsyncIterator, List
 
+from semantic_kernel import Kernel
 from semantic_kernel.agents.chat_completion.chat_completion_agent import (
     ChatCompletionAgent,
     ChatHistoryAgentThread,
@@ -9,6 +10,7 @@ from semantic_kernel.agents.chat_completion.chat_completion_agent import (
 from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion
 
 from forgebase.core.ports import AgentPort
+from forgebase.core.tool_port import ToolPort
 
 
 class Agent(AgentPort):
@@ -22,6 +24,7 @@ class Agent(AgentPort):
         deployment_name: str,
         instructions: str = "You are a helpful assistant.",
         role: str = "assistant",
+        tools: List[ToolPort] | None = None,
     ) -> None:
         """Initialize the agent.
 
@@ -31,8 +34,17 @@ class Agent(AgentPort):
             deployment_name: Azure OpenAI deployment name
             instructions: System instructions for the agent
             role: Role identifier for the agent
+            tools: List of tools to make available to this agent
         """
         self._role = role
+        self._tools = tools or []
+
+        # Create kernel and register tools
+        self.kernel = Kernel()
+
+        # Register all tools with the kernel
+        for tool in self._tools:
+            tool.register_with_kernel(self.kernel)
 
         self.agent = ChatCompletionAgent(
             service=AzureChatCompletion(
@@ -40,6 +52,7 @@ class Agent(AgentPort):
                 endpoint=endpoint,
                 api_key=api_key,
             ),
+            kernel=self.kernel,  # Pass kernel with registered tools
             name=f"forgebase-{role}",
             instructions=instructions,
         )
@@ -80,5 +93,11 @@ class Agent(AgentPort):
 
     @property
     def available_tools(self) -> List[str]:
-        """Get available tools (placeholder for future)."""
-        return []
+        """Get available tool names."""
+        return [tool.plugin_name for tool in self._tools]
+
+    def set_project_context(self, project_id: str | None) -> None:
+        """Set the current project context for agent tools."""
+        for tool in self._tools:
+            if hasattr(tool, "set_project_context"):
+                tool.set_project_context(project_id)

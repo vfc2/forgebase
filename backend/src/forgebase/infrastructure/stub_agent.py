@@ -4,6 +4,7 @@ import asyncio
 from typing import AsyncIterator, List
 
 from forgebase.core.ports import AgentPort
+from forgebase.core.tool_port import ToolPort
 
 
 class StubAgent(AgentPort):
@@ -17,16 +18,19 @@ class StubAgent(AgentPort):
         *,
         instructions: str = "You are a helpful assistant.",
         role: str = "assistant",
+        tools: List[ToolPort] | None = None,
     ) -> None:
         """Initialize the stub agent.
 
         Args:
             instructions: System instructions for the agent (ignored in stub)
             role: Role identifier for the agent
+            tools: List of tools available to this agent
         """
         self._role = role
         self._instructions = instructions
         self._message_count = 0
+        self._tools = tools or []
 
     async def send_message_stream(self, user_text: str) -> AsyncIterator[str]:
         """Send message and stream a mock response.
@@ -200,5 +204,10 @@ class StubAgent(AgentPort):
 
     @property
     def available_tools(self) -> List[str]:
-        """Get available tools (placeholder for future)."""
-        return []
+        """Get available tool names."""
+        return [tool.plugin_name for tool in self._tools]
+
+    def set_project_context(self, project_id: str | None) -> None:
+        """Set the current project context for agent tools."""
+        for tool in self._tools:
+            tool.set_project_context(project_id)

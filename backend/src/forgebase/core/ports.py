@@ -39,6 +39,10 @@ class AgentPort(Protocol):
         """Get list of available tool names for this agent."""
         ...
 
+    def set_project_context(self, project_id: str | None) -> None:
+        """Set the current project context for agent tools."""
+        ...
+
 
 class ProjectRepositoryPort(Protocol):
     """

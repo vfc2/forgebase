@@ -1,3 +1,3 @@
 """Core package for forgebase."""
 
-from . import entities, exceptions, ports, chat_service, project_service
+from . import entities, exceptions, ports, chat_service, project_service, tool_port
