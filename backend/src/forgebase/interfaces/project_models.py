@@ -51,3 +51,14 @@ class ProjectResponse(BaseModel):
     updated_at: Optional[datetime] = Field(
         None, alias="updatedAt", description="When the project was last updated"
     )
+
+
+class ChatStreamRequest(BaseModel):
+    """Request model for chat streaming."""
+
+    message: str = Field(..., min_length=1, description="The user message")
+    project_id: Optional[UUID] = Field(
+        None,
+        alias="projectId",
+        description="Optional project context for the conversation",
+    )

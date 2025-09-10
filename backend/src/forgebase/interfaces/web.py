@@ -16,6 +16,7 @@ from forgebase.core.project_service import ProjectService
 from forgebase.core.exceptions import ProjectNotFoundError, ProjectAlreadyExistsError
 from forgebase.infrastructure import config, logging_config
 from forgebase.interfaces import project_models
+from forgebase.interfaces.project_models import ChatStreamRequest
 
 
 TEMPLATE_DIR = "../frontend"
@@ -132,13 +133,16 @@ def create_app() -> FastAPI:
 
     @fastapi_app.post("/api/chat/stream")
     async def chat_stream(
-        request: dict, chat_service: ChatService = Depends(get_chat_service)
+        request: ChatStreamRequest,
+        chat_service: ChatService = Depends(get_chat_service),
     ):
-        """Stream chat response."""
-        user_message = request.get("message", "")
+        """Stream chat response with optional project context."""
+        # Set project context if provided
+        if request.project_id:
+            chat_service.set_project_context(str(request.project_id))
 
         async def generate():
-            async for chunk in chat_service.send_message_stream(user_message):
+            async for chunk in chat_service.send_message_stream(request.message):
                 # Escape newlines for SSE format
                 escaped_chunk = chunk.replace("\n", "\\n")
                 yield f"data: {escaped_chunk}\n\n".encode("utf-8")

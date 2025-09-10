@@ -3,9 +3,9 @@ applyTo: "src/**,tests/**"
 ---
 # Project Overview
 
-Forgebase is a minimal MVP for conversational product requirement document (PRD) generation. It provides a transport-agnostic chat interface over Semantic Kernel with streaming responses, supporting both CLI and web interfaces.
+Forgebase is a minimal MVP for conversational product requirement document (PRD) generation. It provides a transport-agnostic chat interface over Semantic Kernel with streaming responses, supporting both CLI and web interfaces. Agents can use tools to save and manage PRDs through conversational workflows.
 
-**Goal:** Enable conversational workflows that turn dialogue into structured PRDs and scoped work plans through a simple, extensible architecture.
+**Goal:** Enable conversational workflows that turn dialogue into structured PRDs and scoped work plans through a simple, extensible architecture with intelligent tool calling.
 
 ## Folder Structure
 
@@ -14,9 +14,9 @@ Forgebase is a minimal MVP for conversational product requirement document (PRD)
 ├── src/forgebase/         # Python backend (core + interfaces)
 │   ├── core/              # Transport-agnostic business logic
 │   ├── infrastructure/    # Agent implementations
-│   └── interfaces/        # CLI + Web API
-│       ├── cli.py         # CLI interface
-│       └── web.py         # FastAPI web API
+│   ├── interfaces/        # CLI + Web API
+│   ├── tools/             # Agent tools and plugins
+│   └── prompts/           # AI prompts and templates
 └── tests/                 # Python backend tests
 ```
 
@@ -24,30 +24,38 @@ Forgebase is a minimal MVP for conversational product requirement document (PRD)
 
 ### Core Components
 * `core/`: Domain logic with no I/O dependencies
-  - [`ChatService`](src/forgebase/core/chat_service.py): Main orchestration service
-  - [`ProjectService`](src/forgebase/core/project_service.py): Project management service
-  - [`AgentPort`](src/forgebase/core/ports.py): Protocol defining agent interface (`send_message_stream`, `reset`)
+  - [`ChatService`](src/forgebase/core/chat_service.py): Chat orchestration with project context
+  - [`ProjectService`](src/forgebase/core/project_service.py): Project CRUD operations and validation
+  - [`AgentPort`](src/forgebase/core/ports.py): Protocol defining agent interface with tool support
+  - [`ToolPort`](src/forgebase/core/tool_port.py): Protocol for agent tools/plugins
   - [`ProjectRepositoryPort`](src/forgebase/core/ports.py): Protocol defining project persistence interface
-  - [`Project`](src/forgebase/core/entities.py): Project entity (ID, name, timestamps)
+  - [`Project`](src/forgebase/core/entities.py): Project entity (ID, name, timestamps, PRD content)
 
 ### Infrastructure Layer  
-* [`config.py`](src/forgebase/infrastructure/config.py): Environment-based agent selection (Azure OpenAI vs stub)
-* [`sk_agent.py`](src/forgebase/infrastructure/sk_agent.py): Semantic Kernel implementation with `ChatCompletionAgent`
+* [`config.py`](src/forgebase/infrastructure/config.py): Environment-based agent selection with tool wiring
+* [`agent.py`](src/forgebase/infrastructure/agent.py): Semantic Kernel implementation with tool registration
 * [`stub_agent.py`](src/forgebase/infrastructure/stub_agent.py): Mock implementation for testing
-* [`project_repository.py`](src/forgebase/infrastructure/project_repository.py): In-memory project storage (extensible to database)
+* [`project_repository.py`](src/forgebase/infrastructure/project_repository.py): In-memory project storage
+
+### Tools Layer
+* [`prd_tools.py`](src/forgebase/tools/prd_tools.py): PRD management tools for agents (save/update PRD content)
 
 ### Interface Layer
 * [`cli.py`](src/forgebase/interfaces/cli.py): Click-based CLI with streaming output
 * [`web.py`](src/forgebase/interfaces/web.py): FastAPI app with chat streaming + project CRUD endpoints
 * [`project_models.py`](src/forgebase/interfaces/project_models.py): Pydantic models for project API
-* `frontend/`: React SPA that consumes the web API
 
 ## Key Patterns
 
 * **Async streaming**: All message flows use `AsyncIterator[str]` for real-time responses
-* **Port/adapter**: Core logic isolated through `AgentPort` and `ProjectRepositoryPort` protocols
-* **Repository pattern**: Project persistence abstracted for easy database integration later
-* **Configuration-driven**: Agent selection via environment variables (Azure OpenAI or stub)
+* **Split services**: ChatService (conversations) and ProjectService (CRUD) follow SRP
+* **Tool calling**: Agents use Semantic Kernel plugins to perform actions (save PRDs, etc.)
+* **Project context**: ChatService manages current project context for tools
+* **Port/adapter**: Core logic isolated through protocols (`AgentPort`, `ToolPort`, `ProjectRepositoryPort`)
+* **Repository pattern**: Project persistence abstracted for easy database integration
+* **Configuration-driven**: Agent selection and tool wiring via environment variables
+* **Transport-agnostic**: Same services power CLI and web interfaces
+* **Dependency injection**: FastAPI uses DI for service management
 * **Transport-agnostic**: Same services power CLI and web interfaces
 * **Frontend separation**: React app is independent, calls FastAPI endpoints
 
@@ -93,6 +101,8 @@ python -m pytest tests
 * **No I/O in core/**: Keep domain logic pure
 * **Never log secrets**: Especially API keys
 * **Async-first design**: Use `asyncio` patterns throughout
+* **Tool protocols**: Tools implement `ToolPort` and register with Semantic Kernel
+* **Project context**: Tools receive project context through `set_project_context()`
 
 ## Strict Rules for Agents
 
@@ -100,7 +110,16 @@ python -m pytest tests
 - Maintain the streaming contract (see below); do not buffer entire responses.
 - Never log secrets; keep configuration via environment variables only.
 - No I/O in `core/**`; keep domain logic pure.
+- Tools must implement `ToolPort` protocol and be stateless except for project context.
 - If you change public behavior, add/adjust tests in `tests/**` accordingly.
+
+## Tool Calling Architecture
+
+- Agents receive tools via constructor and register them with Semantic Kernel
+- Tools implement `ToolPort`: `plugin_name`, `register_with_kernel()`, `set_project_context()`
+- Project context flows: ChatService → Agent → Tools
+- Tools use `@kernel_function` decorator for Semantic Kernel integration
+- Current tools: `PRDTools.update_prd()` for saving PRD content to projects
 
 ## Streaming Contract (SSE)
 
@@ -115,6 +134,7 @@ python -m pytest tests
 - `POST /api/projects` - Create project
 - `GET /api/projects` - List projects (newest first)  
 - `GET /api/projects/{id}` - Get project by ID
-- `PUT /api/projects/{id}` - Update project name
+- `PUT /api/projects/{id}` - Update project name and/or PRD
 - `DELETE /api/projects/{id}` - Delete project
 - Uses Pydantic models for validation, repository pattern for persistence
+- Project entity includes: `id`, `name`, `prd` (content), `created_at`, `updated_at`
