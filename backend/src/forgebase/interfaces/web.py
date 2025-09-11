@@ -1,5 +1,6 @@
 """Web interface for the forgebase chat application."""
 
+import logging
 import os
 from contextlib import asynccontextmanager
 from typing import Any, cast
@@ -20,6 +21,19 @@ from forgebase.interfaces.project_models import ChatStreamRequest
 
 # Temporary test user ID - will be replaced with proper authentication later
 TEST_USER_ID = "test-user-123"
+
+# Set up a logger for our endpoint logging
+logger = logging.getLogger("forgebase.api")
+logger.setLevel(logging.INFO)
+
+# Add a console handler if none exists
+if not logger.handlers:
+    handler = logging.StreamHandler()
+    handler.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(levelname)s:     %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    logger.propagate = False
 
 
 TEMPLATE_DIR = "../frontend"
@@ -192,8 +206,12 @@ def create_app() -> FastAPI:
         project_service: ProjectService = Depends(get_project_service),
     ):
         """Create a new project."""
+        logger.info(
+            "CREATE_PROJECT: user_id=%s, project_name=%s", TEST_USER_ID, request.name)
         try:
             project = await project_service.create_project(TEST_USER_ID, request.name, request.prd)
+            logger.info(
+                "CREATE_PROJECT_SUCCESS: user_id=%s, project_id=%s", TEST_USER_ID, project.id)
             return JSONResponse(content=_project_to_payload(project_models, project))
         except ProjectAlreadyExistsError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
@@ -205,7 +223,10 @@ def create_app() -> FastAPI:
         project_service: ProjectService = Depends(get_project_service),
     ):
         """List all projects."""
+        logger.info("LIST_PROJECTS: user_id=%s", TEST_USER_ID)
         projects = await project_service.list_projects(TEST_USER_ID)
+        logger.info(
+            "LIST_PROJECTS_SUCCESS: user_id=%s, count=%s", TEST_USER_ID, len(projects))
         return JSONResponse(
             content=[_project_to_payload(project_models, p) for p in projects]
         )
@@ -217,8 +238,12 @@ def create_app() -> FastAPI:
         project_id: UUID, project_service: ProjectService = Depends(get_project_service)
     ):
         """Get a project by ID."""
+        logger.info(
+            "GET_PROJECT: user_id=%s, project_id=%s", TEST_USER_ID, project_id)
         try:
             project = await project_service.get_project(str(project_id), TEST_USER_ID)
+            logger.info(
+                "GET_PROJECT_SUCCESS: user_id=%s, project_id=%s", TEST_USER_ID, project_id)
             return JSONResponse(content=_project_to_payload(project_models, project))
         except ProjectNotFoundError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
@@ -232,10 +257,14 @@ def create_app() -> FastAPI:
         project_service: ProjectService = Depends(get_project_service),
     ):
         """Partially update a project (name and/or PRD)."""
+        logger.info(
+            "UPDATE_PROJECT: user_id=%s, project_id=%s", TEST_USER_ID, project_id)
         try:
             project = await project_service.update_project(
                 str(project_id), TEST_USER_ID, name=request.name, prd=request.prd
             )
+            logger.info(
+                "UPDATE_PROJECT_SUCCESS: user_id=%s, project_id=%s", TEST_USER_ID, project_id)
             return JSONResponse(content=_project_to_payload(project_models, project))
         except ProjectNotFoundError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
@@ -245,9 +274,15 @@ def create_app() -> FastAPI:
         project_id: UUID, project_service: ProjectService = Depends(get_project_service)
     ):
         """Delete a project."""
+        logger.info(
+            "DELETE_PROJECT: user_id=%s, project_id=%s", TEST_USER_ID, project_id)
         deleted = await project_service.delete_project(str(project_id), TEST_USER_ID)
         if deleted:
+            logger.info(
+                "DELETE_PROJECT_SUCCESS: user_id=%s, project_id=%s", TEST_USER_ID, project_id)
             return {"status": "deleted"}
+        logger.info(
+            "DELETE_PROJECT_NOT_FOUND: user_id=%s, project_id=%s", TEST_USER_ID, project_id)
         raise HTTPException(status_code=404, detail="Project not found")
 
     return fastapi_app
