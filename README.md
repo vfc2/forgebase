@@ -6,7 +6,6 @@
 <p align="center"><strong>Global Hackathon 2025 – Microsoft ISD</strong></p>
 <p align="center">Accelerating the path from idea to execution with AI‑guided, structured requirements generation.</p>
 
----
 
 > [!IMPORTANT]  
 > Forgebase is an independent initiative and is not an official Microsoft product or offering. Forgebase is not affiliated with or endorsed by Microsoft.
