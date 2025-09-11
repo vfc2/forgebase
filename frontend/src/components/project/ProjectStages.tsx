@@ -4,6 +4,8 @@ import { IconMessageCircle, IconFileText, IconClipboardList } from '@tabler/icon
 import { ChatInterface } from '../chat/ChatInterface';
 import { PrdPreview } from './PrdPreview';
 import { BacklogView } from './BacklogView';
+import { useQuery } from '@tanstack/react-query';
+import { apiService } from '../../services/api';
 
 interface ProjectStagesProps {
     projectId: string;
@@ -11,6 +13,13 @@ interface ProjectStagesProps {
 
 export const ProjectStages: React.FC<ProjectStagesProps> = ({ projectId }) => {
     const [activeTab, setActiveTab] = useState<string>('chat');
+    
+    // Fetch project data for PRD display
+    const { data: project, isLoading } = useQuery({
+        queryKey: ['project', projectId],
+        queryFn: () => apiService.getProject(projectId),
+        enabled: !!projectId,
+    });
 
     return (
         <Box style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -103,7 +112,7 @@ export const ProjectStages: React.FC<ProjectStagesProps> = ({ projectId }) => {
                     
                     {activeTab === 'prd' && (
                         <Box style={{ height: '100%' }}>
-                            <PrdPreview projectId={projectId} />
+                            <PrdPreview project={project || null} isLoading={isLoading} />
                         </Box>
                     )}
                     
